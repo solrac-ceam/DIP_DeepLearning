@@ -1,0 +1,32 @@
+# Object files
+*.o
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Folders
+bin/
+libmc920/
+obj/
+
+# IDe files
+DIP_DeepLearning.cbp
+DIP_DeepLearning.depend
+DIP_DeepLearning.layout
+
+# Others
+.directory
+*~
+
