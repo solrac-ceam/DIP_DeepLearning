@@ -5,7 +5,7 @@
 int main()
 {
     AdjRel *adj = NULL;
-    adj = CreateAdjRel(9);
+    adj = CreateAdjRel(4);
     printf("Hello world!\n");
 
     return 0;
