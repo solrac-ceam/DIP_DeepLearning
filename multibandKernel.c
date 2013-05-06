@@ -1,0 +1,95 @@
+#include "multibandKernel.h"
+
+/*Agregado por Pablo Fonseca */
+
+AdjRel *Rectangular(int nx, int ny)
+{
+    AdjRel *A=NULL;
+    int     dx,dy,n,i;
+
+    n=nx*ny; //Revisar si es +1
+
+    A = CreateAdjRel(n);
+    i=0;
+    for (dy=0; dy < ny; dy++)
+        for (dx=0; dx < nx; dx++) {
+            A->adj[i].dx = dx;
+            A->adj[i].dy = dy;
+            A->adj[i].dz = 0;
+            i++;
+        }
+
+    return(A);
+}
+
+/*Agregado por Pablo Fonseca */
+
+MultibandKernel *CreateMultibandKernel(AdjRel *A, int nbands)
+{
+  MultibandKernel *K=NULL;
+  int     i,j;
+
+  /* Cria kernel */
+
+  K = (MultibandKernel *)calloc(1,sizeof(MultibandKernel ));
+  K->nbands = nbands;
+  K->A = CreateAdjRel(A->n);
+
+  K->w = (float **)calloc(A->n,sizeof(float*));
+  for(j=0; j< A->n; j++)
+    K->w[j] = AllocFloatArray(nbands);
+  /* Copia a relação de adjacência */
+
+  for (i=0; i < A->n; i++)
+    K->A->adj[i] = A->adj[i];
+
+  return(K);
+}
+
+int MaximumDisplacementMK(MultibandKernel *K)
+{
+  int i,dmax=INT_MIN; /* dmax = -infinito */
+
+  for (i=0; i < K->A->n; i++) {
+    if (dmax < abs(K->A->adj[i].dx))
+      dmax = abs(K->A->adj[i].dx);
+    if (dmax < abs(K->A->adj[i].dy))
+      dmax = abs(K->A->adj[i].dy);
+    if (dmax < abs(K->A->adj[i].dz))
+      dmax = abs(K->A->adj[i].dz);
+  }
+
+  return(dmax);
+}
+
+MultibandKernel *CreateMultibandRndKernel(int nx, int ny, int nbands){
+
+    float d;
+    int i,dz;
+    AdjRel *A = Rectangular(nx,ny);
+    MultibandKernel *K = CreateMultibandKernel(A, nbands);
+
+    for(i=0;i<A->n;i++){
+        for(dz=0; dz < nbands; dz++){
+            d = (float) rand () / ((float) RAND_MAX + 1);
+            K->w[i][dz] = d;
+        }
+    }
+    return K;
+}
+
+void DestroyMultibandKernel(MultibandKernel **K)
+{
+  int i;
+  MultibandKernel *aux=*K;
+
+ if (aux!=NULL){
+   for(i=0;i<aux->A->n;i++){
+        free(aux->w[i]);
+   }
+   free(aux->w);
+   DestroyAdjRel(&aux->A);
+   free(aux);
+   *K = NULL;
+ }
+}
