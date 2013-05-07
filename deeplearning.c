@@ -33,7 +33,7 @@ MultibandImage *pooling(MultibandImage *img, int stride, float radio, float alph
 
   AdjRel *A = Circular(radio);
   int     xq, yq, band, yp, xp,i;
-  MultibandImage  *pooling = CreateMultibandImage(img->nx/stride, img->ny/stride, img->nbands);
+  MultibandImage  *pooling = CreateMultibandImage(img->nx/stride + (((img->nx % stride) != 0) ? 1:0), img->ny/stride + (((img->ny % stride) != 0) ? 1:0), img->nbands);
   float   val;
 
   for(band=0; band<img->nbands; band++)
@@ -91,4 +91,3 @@ float activation(float value, int type){
 float activation_max(float value){
     return (value>0.0)?value:0;
 }
-
