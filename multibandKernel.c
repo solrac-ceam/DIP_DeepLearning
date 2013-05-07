@@ -26,24 +26,23 @@ AdjRel *Rectangular(int nx, int ny)
 
 MultibandKernel *CreateMultibandKernel(AdjRel *A, int nbands)
 {
-  MultibandKernel *K=NULL;
-  int     i,j;
+    MultibandKernel *K=NULL;
+    int i,j;
 
-  /* Cria kernel */
+    /* Cria kernel */
 
-  K = (MultibandKernel *)calloc(1,sizeof(MultibandKernel ));
-  K->nbands = nbands;
-  K->A = CreateAdjRel(A->n);
+    K = (MultibandKernel *)calloc(1,sizeof(MultibandKernel ));
+    K->nbands = nbands;
+    K->A = CreateAdjRel(A->n);
 
-  K->w = (float **)calloc(A->n,sizeof(float*));
-  for(j=0; j< A->n; j++)
-    K->w[j] = AllocFloatArray(nbands);
-  /* Copia a relação de adjacência */
+    K->w = (float **)calloc(A->n,sizeof(float*));
+    for(j=0; j< A->n; j++)
+        K->w[j] = AllocFloatArray(nbands);      /* Copia a relação de adjacência */
 
-  for (i=0; i < A->n; i++)
-    K->A->adj[i] = A->adj[i];
+    for (i=0; i < A->n; i++)
+        K->A->adj[i] = A->adj[i];
 
-  return(K);
+    return(K);
 }
 
 int MaximumDisplacementMK(MultibandKernel *K)
@@ -62,34 +61,88 @@ int MaximumDisplacementMK(MultibandKernel *K)
   return(dmax);
 }
 
-MultibandKernel *CreateMultibandRndKernel(int nx, int ny, int nbands){
-
+MultibandKernel *CreateMultibandRndKernel(int nx, int ny, int nbands)
+{
     float d;
     int i,dz;
+
     AdjRel *A = Rectangular(nx,ny);
     MultibandKernel *K = CreateMultibandKernel(A, nbands);
 
-    for(i=0;i<A->n;i++){
+    srand(time(NULL));
+    for(i=0; i < K->A->n; i++){
         for(dz=0; dz < nbands; dz++){
             d = (float) rand () / ((float) RAND_MAX + 1);
             K->w[i][dz] = d;
         }
     }
+
+    DestroyAdjRel(&A);
     return K;
 }
 
 void DestroyMultibandKernel(MultibandKernel **K)
 {
-  int i;
-  MultibandKernel *aux=*K;
+    int i;
 
- if (aux!=NULL){
-   for(i=0;i<aux->A->n;i++){
-        free(aux->w[i]);
-   }
-   free(aux->w);
-   DestroyAdjRel(&aux->A);
-   free(aux);
-   *K = NULL;
- }
+    MultibandKernel *aux=*K;
+
+    if (aux!=NULL){
+        for(i=0; i < aux->A->n; i++) {
+            free(aux->w[i]);
+        }
+        free(aux->w);
+        DestroyAdjRel(&aux->A);
+        free(aux);
+        *K = NULL;
+    }
 }
+
+/* Agregado por Carlos Alfaro*/
+
+MultibandKernel *readMultibandKernel(char *filename)
+{
+    FILE *fp = NULL;
+    AdjRel *A = NULL;
+    MultibandKernel *K = NULL;
+    int n, nbands, i, j;
+
+    fp = fopen(filename, "r");
+    if (fp != NULL) {
+    	fscanf(fp, "%d %d", &n, &nbands);
+    	A = CreateAdjRel(n);
+    	K = CreateMultibandKernel(A, nbands);
+
+    	for (i=0; i < n; i++) {
+    	    fscanf(fp, "%d %d", &K->A->adj[i].dx, &K->A->adj[i].dy);
+    	    for (j=0; j < nbands; j++) {
+                fscanf(fp, "%f", &K->w[i][j]);
+    	    }
+    	}
+
+    	DestroyAdjRel(&A);
+    }
+    return K;
+}
+
+void writeMultibandKernel(MultibandKernel *K, char *filename)
+{
+    FILE *fp = NULL;
+    int i , j;
+
+    fp = fopen(filename, "w");
+    if ( fp != NULL ) {
+        fprintf(fp, "%d %d\n", K->A->n, K->nbands);
+        for ( i=0; i < K->A->n ; i++ ) {
+            fprintf(fp, "%d %d ", K->A->adj[i].dx, K->A->adj[i].dy);
+            for ( j=0; j < (K->nbands - 1) ; j++ ) {
+                fprintf(fp, "%f ", K->w[i][j]);
+            }
+            fprintf(fp, "%f\n", K->w[i][j]);
+        }
+        fclose(fp);
+    } else {
+        Error(MSG2, "writeMultibandKernel");
+    }
+}
+

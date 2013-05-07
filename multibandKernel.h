@@ -19,4 +19,9 @@ void                DestroyMultibandKernel(MultibandKernel **K);
 
 /*Fin de Agregado por Pablo Fonseca */
 
+/* Agregado por Carlos Alfaro*/
+MultibandKernel *readMultibandKernel(char *filename);
+void writeMultibandKernel(MultibandKernel *K, char *filename);
+
+
 #endif // MULTIBANDKERNEL_H_
