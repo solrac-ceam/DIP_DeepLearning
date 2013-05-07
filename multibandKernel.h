@@ -1,6 +1,7 @@
 #ifndef MULTIBANDKERNEL_H_
 #define MULTIBANDKERNEL_H_
 
+
 #include "mc920.h"
 
 /*Agregado por Pablo Fonseca */
