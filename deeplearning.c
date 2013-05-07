@@ -2,6 +2,7 @@
 
 
 
+
 MultibandImage *normalize(MultibandImage *img, AdjRel *A){
 
   int     xq, yq, band, yp, xp,i;
@@ -50,7 +51,7 @@ MultibandImage *pooling(MultibandImage *img, int stride, float radio, float alph
             }
           }
           val = pow(val, 1/alpha);
-          pooling->band[yp/stride][xp/stride].val[band] = ROUND(pow(val,1/alpha));
+          pooling->band[yp/stride][xp/stride].val[band] = pow(val,1/alpha);
      }
      return(pooling);
 
