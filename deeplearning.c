@@ -1,8 +1,5 @@
 #include "project.h"
 
-
-
-
 MultibandImage *normalize(MultibandImage *img, AdjRel *A){
 
   int     xq, yq, band, yp, xp,i;

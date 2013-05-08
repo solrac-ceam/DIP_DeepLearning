@@ -26,7 +26,7 @@ MultibandImage *CreateMultibandImage(int nx, int ny, int nbands)
                 Error(MSG1,"CreateMultibandImage");
 
             for (x=0;x< I->nx; x++){
-                I->band[y][x].val = (int *)calloc(nbands,sizeof(int));
+                I->band[y][x].val = (float *)calloc(nbands,sizeof(float));
 
                 if (I->band[y][x].val == NULL)
                     Error(MSG1,"CreateMultibandImage");
@@ -40,36 +40,35 @@ MultibandImage *ReadMultibandImage(char *filename)
 {
     FILE *fp=NULL;
     char type[10];
-    int  x,y,nx,ny,Imax, nbands,i;
+    int  x,y,nx,ny, nbands,i;
     MultibandImage *I=NULL;
     char remarks[256];
 
-    fp = fopen(filename,"r");
+    fp = fopen(filename,"rb");
     if (fp != NULL) {
         fscanf(fp,"%s",type);
         NCFgets(remarks,255,fp);
 
-        if (strcmp(type,"P6")==0) {
+        if (strcmp(type,"MBImg")==0) {
             fscanf(fp,"%d",&nx);
             fscanf(fp,"%d",&ny);
             fscanf(fp,"%d",&nbands);
             I = CreateMultibandImage(nx,ny,nbands);
-            fscanf(fp,"%d",&Imax);
             fgetc(fp);
             for (y=0; y < ny; y++)
                 for (x=0; x < nx; x++)
                     for(i=0; i < nbands; i++){
-                        I->band[y][x].val[i]=(int)fgetc(fp);
+                        fread(&I->band[y][x].val[i], sizeof(float), 1, fp);
                     }
         }
         else {
-            Error("Image type invalid","ReadColormage");
+            Error("Image type invalid","ReadMultibandImage");
         }
 
         fclose(fp);
     }
     else{
-        Error(MSG2,"ReadColorImage");
+        Error(MSG2,"ReadMultibandImage");
     }
 
     return(I);
@@ -80,16 +79,15 @@ void WriteMultibandImage(MultibandImage *I, char *filename)
     FILE *fp=NULL;
     int  x,y, i;
 
-    fp = fopen(filename,"w");
+    fp = fopen(filename,"wb");
     if (fp != NULL) {
-        fprintf(fp,"P6\n");
-        fprintf(fp,"%d %d %d\n",I->nx,I->ny, I->nbands);
-        fprintf(fp,"255\n");
+        fprintf(fp,"MBImg\n");
+        fprintf(fp,"%d %d %d\n", I->nx, I->ny, I->nbands);
 
         for (y=0; y < I->ny; y++){
             for (x=0; x < I->nx; x++){
                 for(i=0; i< I->nbands; i++){
-                    fputc((uchar)I->band[y][x].val[i],fp);
+                    fwrite(&I->band[y][x].val[i], sizeof(float), 1, fp);
                 }
             }
         }
@@ -120,3 +118,63 @@ void DestroyMultibandImage(MultibandImage **I)
 }
 
 /*Fin Agregado por Pablo Fonseca */
+
+MultibandImage *ReadGrayImageIntoMultibandImage(char *filename)
+{
+    FILE *fp=NULL;
+    char type[10];
+    uchar *data=NULL;
+    int  x,y,nx,ny,Imax;
+    MultibandImage *I=NULL;
+    char remarks[256];
+
+    fp = fopen(filename,"r");
+    if (fp != NULL) {
+        fscanf(fp,"%s",type);
+        NCFgets(remarks,255,fp);
+
+        if ((strcmp(type,"P2")==0)|| (strcmp(type,"P5")==0)) {
+            fscanf(fp,"%d",&nx);
+            fscanf(fp,"%d",&ny);
+
+            I = CreateMultibandImage(nx,ny,1);
+            fscanf(fp,"%d",&Imax);
+
+            if (strcmp(type,"P2")==0) {
+                for (y=0; y < ny; y++)
+                    for (x=0; x < nx; x++)
+                        fscanf(fp,"%f",&I->band[y][x].val[1]);
+            }
+            else {
+                if (strcmp(type,"P5")==0) {
+                    data = AllocUCharArray(nx*ny);
+                    if (data != NULL) {
+                        fread(data,sizeof(uchar),nx*ny,fp);
+                    }
+                    else {
+                        Error(MSG1, "ReadGrayImageIntoMultibandImage");
+                    }
+                    for (y=0; y < ny; y++)
+                        for (x=0; x < nx; x++)
+                            I->band[y][x].val[1] = data[x+y*nx];
+                    free(data);
+                }
+            }
+        }
+        else {
+            Error("Image type invalid","ReadGrayImageIntoMultibandImage");
+        }
+        fclose(fp);
+    }
+    else {
+        Error(MSG2,"ReadGrayImageIntoMultibandImage");
+    }
+
+    return(I);
+}
+
+MultibandImage   *AppendMultibandImageHowBand(MultibandImage *imgSource, MultibandImage *imgTarget, int band)
+{
+
+    return imgTarget;
+}

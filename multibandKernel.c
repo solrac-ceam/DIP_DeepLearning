@@ -131,6 +131,10 @@ MultibandKernel *readMultibandKernel(char *filename)
     	}
 
     	DestroyAdjRel(&A);
+    	fclose(fp);
+    }
+    else {
+        Error(MSG2, "readMultibandKernel");
     }
     return K;
 }
@@ -166,5 +170,4 @@ MultibandKernel **generateKernelBank(int nx, int ny, int nbands, int n){
     }
 
     return kernelBank;
-
 }

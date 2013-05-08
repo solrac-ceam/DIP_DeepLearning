@@ -22,4 +22,8 @@ MultibandImage   *ReadMultibandImage(char *filename);
 void              WriteMultibandImage(MultibandImage *I, char *filename);
 /*Fin de Agregado por Pablo Fonseca */
 
+MultibandImage   *ReadGrayImageIntoMultibandImage(char *filename);
+MultibandImage   *AppendMultibandImageHowBand(MultibandImage *imgSource, MultibandImage *imgTarget, int band);
+
+
 #endif // _MULTIBANDIMAGE_H_
