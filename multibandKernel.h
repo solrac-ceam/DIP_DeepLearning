@@ -21,8 +21,8 @@ void                DestroyMultibandKernel(MultibandKernel **K);
 /*Fin de Agregado por Pablo Fonseca */
 
 /* Agregado por Carlos Alfaro*/
-MultibandKernel *readMultibandKernel(char *filename);
-void writeMultibandKernel(MultibandKernel *K, char *filename);
-MultibandKernel **generateKernelBank(int nx, int ny, int nbands, int n);
+MultibandKernel    *readMultibandKernel(char *filename);
+void                writeMultibandKernel(MultibandKernel *K, char *filename);
+MultibandKernel   **generateKernelBank(int nx, int ny, int nbands, int n);
 
 #endif // MULTIBANDKERNEL_H_

@@ -11,7 +11,8 @@ int main()
 
     MultibandImage *correlated;
     MultibandKernel *k;
-    m = CreateMultibandImage(2000, 1000, 50);
+
+    /*m = CreateMultibandImage(2000, 1000, 50);
     WriteMultibandImage(m, "/home/palefo/fonstest.ppm");
     readed = ReadMultibandImage("/home/palefo/fonstest.ppm");
     WriteMultibandImage(readed, "/home/palefo/fonstest_readed.ppm");
@@ -25,6 +26,10 @@ int main()
     DestroyMultibandKernel(&k);
     DestroyMultibandImage(&pooled);
     DestroyMultibandImage(&normalized);
-    DestroyMultibandImage(&correlated);
+    DestroyMultibandImage(&correlated);*/
+
+    m = CreateMultibandImage(30,30,2);
+    WriteMultibandImage(m, "test.dlimg");
+    DestroyMultibandImage(&m);
     return 0;
 }

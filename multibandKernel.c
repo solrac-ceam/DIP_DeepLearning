@@ -170,5 +170,4 @@ MultibandKernel **generateKernelBank(int nx, int ny, int nbands, int n){
     }
 
     return kernelBank;
-
 }
