@@ -1,22 +1,30 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "mc920.h"
+#include "project.h"
 
 int main()
 {
-    int i;
-    float d;
-    AdjRel *adj = NULL;
-    adj = CreateAdjRel(4);
+    printf("Hello world!\n");
 
-    srand(time(NULL));
-    for(i=0; i < 50; i++){
-        d = (float) rand () / ((float) RAND_MAX + 1);
-        printf("(%f -  %e) ", d, d);
-    }
-    double rm = (double)RAND_MAX;
-    double res = rm/ (rm + 1.0);
-    printf("%f - Hello world!\n", res);
-    DestroyAdjRel(&adj);
+    MultibandImage *m;
+    MultibandImage *readed;
+    MultibandImage *pooled;
+    MultibandImage *normalized;
+
+    MultibandImage *correlated;
+    MultibandKernel *k;
+    m = CreateMultibandImage(2000, 1000, 50);
+    WriteMultibandImage(m, "/home/palefo/fonstest.ppm");
+    readed = ReadMultibandImage("/home/palefo/fonstest.ppm");
+    WriteMultibandImage(readed, "/home/palefo/fonstest_readed.ppm");
+    pooled = pooling(m, 2, 3.0, 2.0);
+    normalized = normalize(m, Circular(3.0));
+    DestroyMultibandImage(&readed);
+    k =  CreateMultibandRndKernel(10, 20, 60);
+    correlated =  MultibandCorrelation(m,k, ACTIVATION_NONE);
+    WriteMultibandImage(correlated, "/home/palefo/fonstest_correlated.ppm");
+    DestroyMultibandImage(&m);
+    DestroyMultibandKernel(&k);
+    DestroyMultibandImage(&pooled);
+    DestroyMultibandImage(&normalized);
+    DestroyMultibandImage(&correlated);
     return 0;
 }
