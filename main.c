@@ -2,36 +2,39 @@
 
 int main()
 {
-    printf("Hello world!\n");
+    int i;
+    char *filename = "parasito_01_001.pgm";
+    int filterSize = 3;
+    int n = 64;
+    int stride = 2;
+    float radio = 2;
+    float alpha = 2;
+    MultibandKernel **kernels = generateKernelBank(filterSize,filterSize,1,n);
+    MultibandImage **images = (MultibandImage **)calloc(n,sizeof(MultibandImage**));
+    MultibandImage *im = ReadGrayImageIntoMultibandImage(filename);
+    MultibandImage *appended, *pooled, *normalized;
+    AdjRel *rectangular = Rectangular(3,3);
 
-    MultibandImage *m;
-    MultibandImage *readed;
-    MultibandImage *pooled;
-    MultibandImage *normalized;
-
-    MultibandImage *correlated;
-    MultibandKernel *k;
-
-    m = CreateMultibandImage(1200, 900, 100);
-    WriteMultibandImage(m, "fonstest.ppm");
-    readed = ReadMultibandImage("fonstest.ppm");
-    WriteMultibandImage(readed, "fonstest_readed.ppm");
-    pooled = pooling(m, 2, 3.0, 2.0);
-    normalized = normalize(m, Circular(3.0));
-    DestroyMultibandImage(&readed);
-    k =  CreateMultibandRndKernel(9, 9, 100);
-    correlated =  MultibandCorrelation(m,k, ACTIVATION_NONE);
-    WriteMultibandImage(correlated, "fonstest_correlated.ppm");
-    DestroyMultibandImage(&m);
-    DestroyMultibandKernel(&k);
+    for(i=0; i< n; i++)
+    {
+        images[i] = MultibandCorrelation(im, kernels[i], ACTIVATION_MAX);
+    }
+    appended = AppendManyMultibandImages(images, n);
+    for(i=0; i<n; i++){
+        DestroyMultibandImage(&images[i]);
+        DestroyMultibandKernel(&kernels[i]);
+    }
+    free(images);
+    free(kernels);
+    pooled = pooling(appended, stride, radio, alpha);
+    DestroyMultibandImage(&appended);
+    normalized = normalize(pooled, rectangular);
     DestroyMultibandImage(&pooled);
+    Write2CSV(&normalized, 1, "result.cvs");
     DestroyMultibandImage(&normalized);
-    DestroyMultibandImage(&correlated);
-
-    m = CreateMultibandImage(30,30,2);
-    WriteMultibandImage(m, "test.dlimg");
-    DestroyMultibandImage(&m);
     return 0;
+
 }
+
 
 
