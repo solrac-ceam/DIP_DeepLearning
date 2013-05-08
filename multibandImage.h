@@ -25,5 +25,7 @@ void              WriteMultibandImage(MultibandImage *I, char *filename);
 MultibandImage   *ReadGrayImageIntoMultibandImage(char *filename);
 MultibandImage   *AppendMultibandImageHowBand(MultibandImage *imgSource, MultibandImage *imgTarget, int band);
 
-
+MultibandImage   *AppendManyMultibandImages(MultibandImage **images, int n);
+MultibandImage   *AppendMultibandImages(MultibandImage *img1, MultibandImage *img2);
+void  Write2CSV(MultibandImage **images, int n, char * filename);
 #endif // _MULTIBANDIMAGE_H_
