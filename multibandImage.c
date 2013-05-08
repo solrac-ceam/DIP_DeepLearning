@@ -143,7 +143,7 @@ MultibandImage *ReadGrayImageIntoMultibandImage(char *filename)
             if (strcmp(type,"P2")==0) {
                 for (y=0; y < ny; y++)
                     for (x=0; x < nx; x++)
-                        fscanf(fp,"%f",&I->band[y][x].val[1]);
+                        fscanf(fp,"%f",&I->band[y][x].val[0]);
             }
             else {
                 if (strcmp(type,"P5")==0) {
@@ -156,7 +156,7 @@ MultibandImage *ReadGrayImageIntoMultibandImage(char *filename)
                     }
                     for (y=0; y < ny; y++)
                         for (x=0; x < nx; x++)
-                            I->band[y][x].val[1] = data[x+y*nx];
+                            I->band[y][x].val[0] = data[x+y*nx];
                     free(data);
                 }
             }
@@ -173,8 +173,72 @@ MultibandImage *ReadGrayImageIntoMultibandImage(char *filename)
     return(I);
 }
 
-MultibandImage   *AppendMultibandImageHowBand(MultibandImage *imgSource, MultibandImage *imgTarget, int band)
-{
+MultibandImage   *AppendMultibandImageHowBand(MultibandImage *imgSource, MultibandImage *imgTarget, int band){
 
     return imgTarget;
+}
+
+MultibandImage   *AppendMultibandImages(MultibandImage *img1, MultibandImage *img2)
+{
+    int band, y, x;
+    int offset;
+    MultibandImage *result = CreateMultibandImage(img1->nx, img1->ny, img1->nbands + img2->nbands);
+    for(band=0; band<img1->nbands; band++)
+      for (y=0; y < img1->ny; y++)
+        for (x=0; x< img1->nx; x++){
+            result->band[y][x].val[band] = img1->band[y][x].val[band];
+        }
+    offset = img1->nbands;
+    for(band=0; band<img2->nbands; band++)
+      for (y=0; y < img2->ny; y++)
+        for (x=0; x< img2->nx; x++){
+            result->band[y][x].val[offset+band] = img2->band[y][x].val[band];
+        }
+    return result;
+}
+
+MultibandImage   *AppendManyMultibandImages(MultibandImage **images, int n)
+{
+    int i,band, tbands=0, y, x;
+    int offset = 0;
+    MultibandImage *result;
+
+    for(i=0; i<n; i++)
+        tbands += images[i]->nbands;
+
+    result = CreateMultibandImage(images[0]->nx, images[0]->ny, tbands);
+
+    for(i=0; i<n; i++){
+        for(band=0; band<images[i]->nbands; band++){
+          for (y=0; y < images[i]->ny; y++){
+            for (x=0; x< images[i]->nx; x++){
+                result->band[y][x].val[offset+band] = images[i]->band[y][x].val[band];
+            }
+          }
+        }
+        offset += images[i]->nbands;
+    }
+
+    return result;
+}
+
+void  Write2CSV(MultibandImage **images, int n, char * filename)
+{
+    int i,band, y, x;
+    FILE *fp=NULL;
+    fp = fopen(filename,"wb");
+
+
+    for(i=0; i<n; i++){
+        for (y=0; y < images[i]->ny; y++){
+           for (x=0; x< images[i]->nx; x++){
+              for(band=0; band<images[i]->nbands; band++){
+                fprintf(fp,"%f, ", images[i]->band[y][x].val[band]);;
+            }
+          }
+        }
+    }
+
+    fclose(fp);
+
 }
