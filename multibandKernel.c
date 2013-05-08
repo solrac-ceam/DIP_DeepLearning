@@ -1,4 +1,4 @@
-#include "multibandKernel.h"
+#include "project.h"
 
 /*Agregado por Pablo Fonseca */
 
@@ -65,15 +65,25 @@ MultibandKernel *CreateMultibandRndKernel(int nx, int ny, int nbands)
 {
     float d;
     int i,dz;
-
+    float sum=0.0, squaredsum=0.0, mean, l2norm;
     AdjRel *A = Rectangular(nx,ny);
     MultibandKernel *K = CreateMultibandKernel(A, nbands);
+
 
     srand(time(NULL));
     for(i=0; i < K->A->n; i++){
         for(dz=0; dz < nbands; dz++){
             d = (float) rand () / ((float) RAND_MAX + 1);
+            sum += d;
+            squaredsum += d*d;
             K->w[i][dz] = d;
+        }
+    }
+    mean = sum/(nx*ny*nbands);
+    l2norm = sqrt(squaredsum);
+    for(i=0; i < K->A->n; i++){
+        for(dz=0; dz < nbands; dz++){
+            K->w[i][dz] = (K->w[i][dz]-mean)/l2norm;
         }
     }
 
@@ -130,6 +140,7 @@ void writeMultibandKernel(MultibandKernel *K, char *filename)
     FILE *fp = NULL;
     int i , j;
 
+
     fp = fopen(filename, "w");
     if ( fp != NULL ) {
         fprintf(fp, "%d %d\n", K->A->n, K->nbands);
@@ -146,3 +157,14 @@ void writeMultibandKernel(MultibandKernel *K, char *filename)
     }
 }
 
+MultibandKernel **generateKernelBank(int nx, int ny, int nbands, int n){
+    int i;
+    MultibandKernel **kernelBank = (MultibandKernel **)calloc(n,sizeof(MultibandKernel *));
+
+    for(i=0; i<n; i++){
+        kernelBank[i] = CreateMultibandRndKernel(nx,ny,nbands);
+    }
+
+    return kernelBank;
+
+}
