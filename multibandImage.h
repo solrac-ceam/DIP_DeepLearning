@@ -1,12 +1,11 @@
 #ifndef _MULTIBANDIMAGE_H_
 #define _MULTIBANDIMAGE_H_
 
-#include "mc920.h"
 
 /*Agregado por Pablo Fonseca */
 
 typedef struct _bands {
-  int *val;     /* Vector of Bands */
+  float *val;     /* Vector of Bands */
 } Bands;
 
 typedef struct _multibandImage {
