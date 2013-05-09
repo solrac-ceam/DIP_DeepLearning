@@ -1,4 +1,8 @@
 #include "project.h"
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <float.h>
 
 /*Agregado por Pablo Fonseca */
 
@@ -148,12 +152,7 @@ MultibandImage *ReadGrayImageIntoMultibandImage(char *filename)
             else {
                 if (strcmp(type,"P5")==0) {
                     data = AllocUCharArray(nx*ny);
-                    if (data != NULL) {
-                        fread(data,sizeof(uchar),nx*ny,fp);
-                    }
-                    else {
-                        Error(MSG1, "ReadGrayImageIntoMultibandImage");
-                    }
+                    fread(data,sizeof(uchar),nx*ny,fp);
                     for (y=0; y < ny; y++)
                         for (x=0; x < nx; x++)
                             I->band[y][x].val[0] = data[x+y*nx];
@@ -173,8 +172,9 @@ MultibandImage *ReadGrayImageIntoMultibandImage(char *filename)
     return(I);
 }
 
-MultibandImage   *AppendMultibandImageHowBand(MultibandImage *imgSource, MultibandImage *imgTarget, int band){
-
+MultibandImage   *AppendMultibandImageHowBand(MultibandImage *imgSource, MultibandImage *imgTarget, int band)
+{
+    //falta implementar XD
     return imgTarget;
 }
 
@@ -233,7 +233,7 @@ void  Write2CSV(MultibandImage **images, int n, char * filename)
         for (y=0; y < images[i]->ny; y++){
            for (x=0; x< images[i]->nx; x++){
               for(band=0; band<images[i]->nbands; band++){
-                fprintf(fp,"%f, ", images[i]->band[y][x].val[band]);;
+                fprintf(fp,"%.12f, ", images[i]->band[y][x].val[band]);
             }
           }
         }
@@ -241,4 +241,76 @@ void  Write2CSV(MultibandImage **images, int n, char * filename)
 
     fclose(fp);
 
+}
+
+void WriteOneBandOfMultibandImageToGrayImage(MultibandImage *I, int z, char *filename)
+{
+    FILE *fp=NULL;
+    uchar *data=NULL;
+    int  x,y;
+    float Imax,Imin;
+    char *image_band_filename;
+
+    if(z >= I->nbands ) return;
+
+    Imax = FLT_MIN; Imin = FLT_MAX;
+    for (y=0; y < I->ny; y++)
+        for (x=0; x < I->nx; x++){
+            if (I->band[y][x].val[z] > Imax)
+                Imax = I->band[y][x].val[z];
+            if (I->band[y][x].val[z] < Imin)
+                Imin = I->band[y][x].val[z];
+        }
+
+    image_band_filename = AllocCharArray(strlen(filename)+14);
+    sprintf(image_band_filename, "%s_band_%.3d.pgm", filename, z);
+
+    fp = fopen(image_band_filename,"wb");
+    if (fp != NULL) {
+        if (((Imax-Imin) >= 0)&&((Imax-Imin) < 256)){
+            fprintf(fp,"P5\n");
+            fprintf(fp,"%d %d\n",I->nx,I->ny);
+            fprintf(fp,"%d\n",(int)Imax);
+
+            data = AllocUCharArray(I->nx*I->ny);
+            for (y=0; y < I->ny; y++)
+                for (x=0; x < I->nx; x++)
+                    data[x+y*I->nx] = (uchar) (I->band[y][x].val[z]-Imin + 0.5);
+
+            fwrite(data,sizeof(uchar),I->nx*I->ny,fp);
+            free(data);
+        }
+        else {
+            fprintf(fp,"P2\n");
+            fprintf(fp,"%d %d\n",I->nx,I->ny);
+            fprintf(fp,"%d\n", (int)(Imax-Imin + 0.5));
+
+            for (y=0; y < I->ny; y++){
+                for (x=0; x < I->nx; x++)
+                    fprintf(fp,"%d ", (int)(I->band[y][x].val[z]-Imin + 0.5));
+                if (y%17==0)
+                    fprintf(fp,"\n");
+            }
+        }
+        fclose(fp);
+    }
+    else {
+        Error(MSG2,"WriteOneBandOfMultibandImageToGrayImage");
+    }
+}
+
+void WriteMultibandImageToGrayImages(MultibandImage *mbImg, char *filename)
+{
+    int i;
+    struct stat st;
+
+    if (stat(filename, &st) == -1) {
+        if (mkdir(filename, 0777) == -1){
+            Error("cannot create directory.", "WriteMultibandImageToGrayImages");
+        }
+    }
+
+    for (i=0; i < mbImg->nbands; i++) {
+        WriteOneBandOfMultibandImageToGrayImage(mbImg, i, filename);
+    }
 }

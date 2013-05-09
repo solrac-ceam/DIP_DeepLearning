@@ -151,9 +151,9 @@ void writeMultibandKernel(MultibandKernel *K, char *filename)
         for ( i=0; i < K->A->n ; i++ ) {
             fprintf(fp, "%d %d ", K->A->adj[i].dx, K->A->adj[i].dy);
             for ( j=0; j < (K->nbands - 1) ; j++ ) {
-                fprintf(fp, "%f ", K->w[i][j]);
+                fprintf(fp, "%.12f ", K->w[i][j]);
             }
-            fprintf(fp, "%f\n", K->w[i][j]);
+            fprintf(fp, "%.12f\n", K->w[i][j]);
         }
         fclose(fp);
     } else {

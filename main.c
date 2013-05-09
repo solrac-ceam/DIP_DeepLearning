@@ -1,4 +1,6 @@
 #include "project.h"
+#include <sys/stat.h>
+#include <sys/types.h>
 
 int main()
 {
@@ -32,6 +34,24 @@ int main()
     DestroyMultibandImage(&pooled);
     Write2CSV(&normalized, 1, "result.cvs");
     DestroyMultibandImage(&normalized);
+
+    /*struct stat st = {0};
+    if (stat("directorioPrueba", &st) == -1) {
+        if (mkdir("directorioPrueba", 0777) == -1){
+            Error("cannot create directory.", "WriteMultibandImageToGrayImages");
+        }
+    }
+    char name[30] = "";
+    char extencion[10] = "";
+    char file[] = "nombrearchivo.extencion";
+    char *ptc;
+
+    ptc = strchr(file, '.');
+    strcpy(extencion, ptc+1);
+    *ptc = '\0';
+    strcpy(name, file);
+
+    printf("name: %s, ext: %s", name, extencion);*/
     return 0;
 
 }
