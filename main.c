@@ -1,11 +1,10 @@
-#include "project.h"
-#include <sys/stat.h>
-#include <sys/types.h>
+#include "dplrgcommon.h"
+#include "deeplearning.h"
 
 int main(int argc, char** argv)
 {
     int i;
-    char *filename = "image.pgm";
+    char *filename = "parasito_01_001.pgm";
     int filterSize = 3;
     int n = 64;
     int n2 =128;

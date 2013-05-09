@@ -1,8 +1,4 @@
-#include "project.h"
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <float.h>
+#include "multibandImage.h"
 
 /*Agregado por Pablo Fonseca */
 
