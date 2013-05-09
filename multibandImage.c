@@ -226,19 +226,19 @@ void  Write2CSV(MultibandImage **images, int n, char * filename)
 {
     int i,band, y, x;
     FILE *fp=NULL;
-    fp = fopen(filename,"wb");
+    fp = fopen(filename,"a");
 
 
     for(i=0; i<n; i++){
+      for(band=0; band<images[i]->nbands; band++){
         for (y=0; y < images[i]->ny; y++){
            for (x=0; x< images[i]->nx; x++){
-              for(band=0; band<images[i]->nbands; band++){
-                fprintf(fp,"%.12f, ", images[i]->band[y][x].val[band]);
+               fprintf(fp,"%f, ", images[i]->band[y][x].val[band]);;
             }
           }
         }
     }
-
+    fprintf(fp,"\n");
     fclose(fp);
 
 }

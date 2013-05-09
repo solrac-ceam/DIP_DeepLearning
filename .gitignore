@@ -29,4 +29,6 @@ DIP_DeepLearning.layout
 # Others
 .directory
 *~
-
+*.orig
+*.pgm
+*.cvs
