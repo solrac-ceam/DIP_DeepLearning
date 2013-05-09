@@ -147,17 +147,13 @@ MultibandImage *ReadGrayImageIntoMultibandImage(char *filename)
             }
             else {
                 if (strcmp(type,"P5")==0) {
-                    data = AllocUCharArray(nx*ny);
-                    if (data != NULL) {
-                        fread(data,sizeof(uchar),nx*ny,fp);
-                    }
-                    else {
-                        Error(MSG1, "ReadGrayImageIntoMultibandImage");
-                    }
-                    for (y=0; y < ny; y++)
+                      data = AllocUCharArray(nx*ny);
+                      fread(data,sizeof(uchar),nx*ny,fp);
+                      for (y=0; y < ny; y++)
                         for (x=0; x < nx; x++)
-                            I->band[y][x].val[0] = data[x+y*nx];
-                    free(data);
+                          I->band[y][x].val[0] = data[x+y*nx];
+                      free(data);
+
                 }
             }
         }
@@ -226,19 +222,19 @@ void  Write2CSV(MultibandImage **images, int n, char * filename)
 {
     int i,band, y, x;
     FILE *fp=NULL;
-    fp = fopen(filename,"wb");
+    fp = fopen(filename,"a");
 
 
     for(i=0; i<n; i++){
+      for(band=0; band<images[i]->nbands; band++){
         for (y=0; y < images[i]->ny; y++){
            for (x=0; x< images[i]->nx; x++){
-              for(band=0; band<images[i]->nbands; band++){
-                fprintf(fp,"%f, ", images[i]->band[y][x].val[band]);;
+               fprintf(fp,"%f, ", images[i]->band[y][x].val[band]);;
             }
           }
         }
     }
-
+    fprintf(fp,"\n");
     fclose(fp);
 
 }
