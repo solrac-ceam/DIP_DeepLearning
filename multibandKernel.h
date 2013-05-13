@@ -1,8 +1,7 @@
 #ifndef MULTIBANDKERNEL_H_
 #define MULTIBANDKERNEL_H_
 
-
-#include "mc920.h"
+#include "dplrgcommon.h"
 
 /*Agregado por Pablo Fonseca */
 

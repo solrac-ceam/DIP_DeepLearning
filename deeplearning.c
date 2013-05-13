@@ -1,31 +1,32 @@
-#include "project.h"
+#include "deeplearning.h"
 
 MultibandImage *normalize(MultibandImage *img, AdjRel *A){
 
-  int     xq, yq, band, yp, xp,i;
-  MultibandImage  *normalized = CreateMultibandImage(img->nx, img->ny, img->nbands);
-  float   val;
+    int     xq, yq, band, yp, xp,i;
+    float   val;
+    MultibandImage  *normalized = CreateMultibandImage(img->nx, img->ny, img->nbands);
 
 
-  for(band=0; band<img->nbands; band++)
-     for (yp=0; yp < img->ny; yp++)
-        for (xp=0; xp < img->nx; xp++){
-          val = 0.0;
-          for (i=0; i < A->n; i++) {
-            xq = xp + A->adj[i].dx;
-            yq = yp + A->adj[i].dy;
-            if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)){
-               val += ((img->band[yq][xq].val[band])*(img->band[yq][xq].val[band]));
+    for (band=0; band<img->nbands; band++)
+        for (yp=0; yp < img->ny; yp++)
+            for (xp=0; xp < img->nx; xp++) {
+                val = 0.0;
+                for (i=0; i < A->n; i++) {
+                    xq = xp + A->adj[i].dx;
+                    yq = yp + A->adj[i].dy;
+                    if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)){
+                        val += ((img->band[yq][xq].val[band])*(img->band[yq][xq].val[band]));
+                    }
+                }
+                if (val != 0.0) {
+                    normalized->band[yp][xp].val[band] = ((img->band[yp][xp].val[band])/sqrt(val));
+                }
+                else {
+                    normalized->band[yp][xp].val[band] = 0.0;
+                }
             }
-          }
-          if(val != 0.0){
-            normalized->band[yp][xp].val[band] = ((img->band[yp][xp].val[band])/sqrt(val));
-          }else{
-            normalized->band[yp][xp].val[band] = 0.0;
-          }
-     }
 
-     return(normalized);
+    return(normalized);
 
 }
 

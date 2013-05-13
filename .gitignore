@@ -21,7 +21,7 @@ bin/
 libmc920/
 obj/
 
-# IDe files
+# IDE files
 DIP_DeepLearning.cbp
 DIP_DeepLearning.depend
 DIP_DeepLearning.layout
@@ -29,4 +29,6 @@ DIP_DeepLearning.layout
 # Others
 .directory
 *~
-
+*.orig
+*.pgm
+*.cvs

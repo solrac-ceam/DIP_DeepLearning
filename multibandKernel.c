@@ -1,4 +1,4 @@
-#include "project.h"
+#include "multibandKernel.h"
 
 /*Agregado por Pablo Fonseca */
 
@@ -47,18 +47,18 @@ MultibandKernel *CreateMultibandKernel(AdjRel *A, int nbands)
 
 int MaximumDisplacementMK(MultibandKernel *K)
 {
-  int i,dmax=INT_MIN; /* dmax = -infinito */
+    int i,dmax=INT_MIN; /* dmax = -infinito */
 
-  for (i=0; i < K->A->n; i++) {
-    if (dmax < abs(K->A->adj[i].dx))
-      dmax = abs(K->A->adj[i].dx);
-    if (dmax < abs(K->A->adj[i].dy))
-      dmax = abs(K->A->adj[i].dy);
-    if (dmax < abs(K->A->adj[i].dz))
-      dmax = abs(K->A->adj[i].dz);
-  }
+    for (i=0; i < K->A->n; i++) {
+        if (dmax < abs(K->A->adj[i].dx))
+            dmax = abs(K->A->adj[i].dx);
+        if (dmax < abs(K->A->adj[i].dy))
+            dmax = abs(K->A->adj[i].dy);
+        if (dmax < abs(K->A->adj[i].dz))
+            dmax = abs(K->A->adj[i].dz);
+    }
 
-  return(dmax);
+    return(dmax);
 }
 
 MultibandKernel *CreateMultibandRndKernel(int nx, int ny, int nbands)
@@ -73,17 +73,27 @@ MultibandKernel *CreateMultibandRndKernel(int nx, int ny, int nbands)
     srand(time(NULL));
     for(i=0; i < K->A->n; i++){
         for(dz=0; dz < nbands; dz++){
-            d = (float) rand () / ((float) RAND_MAX + 1);
+            //d = (float) rand () / ((float) RAND_MAX + 1);
+            d = (float) rand();
             sum += d;
-            squaredsum += d*d;
             K->w[i][dz] = d;
         }
     }
+
     mean = sum/(nx*ny*nbands);
-    l2norm = sqrt(squaredsum);
+
     for(i=0; i < K->A->n; i++){
         for(dz=0; dz < nbands; dz++){
-            K->w[i][dz] = (K->w[i][dz]-mean)/l2norm;
+            K->w[i][dz] = K->w[i][dz] - mean;
+            squaredsum += K->w[i][dz] * K->w[i][dz];
+        }
+    }
+
+    l2norm = sqrt(squaredsum);
+
+    for(i=0; i < K->A->n; i++){
+        for(dz=0; dz < nbands; dz++){
+            K->w[i][dz] = K->w[i][dz] / l2norm;
         }
     }
 
@@ -151,9 +161,9 @@ void writeMultibandKernel(MultibandKernel *K, char *filename)
         for ( i=0; i < K->A->n ; i++ ) {
             fprintf(fp, "%d %d ", K->A->adj[i].dx, K->A->adj[i].dy);
             for ( j=0; j < (K->nbands - 1) ; j++ ) {
-                fprintf(fp, "%f ", K->w[i][j]);
+                fprintf(fp, "%.12f ", K->w[i][j]);
             }
-            fprintf(fp, "%f\n", K->w[i][j]);
+            fprintf(fp, "%.12f\n", K->w[i][j]);
         }
         fclose(fp);
     } else {

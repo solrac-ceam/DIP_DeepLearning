@@ -1,10 +1,9 @@
 #ifndef _DEEP_LEARNING_H_
 #define _DEEP_LEARNING_H_
 
-
+#include "dplrgcommon.h"
 #include "multibandImage.h"
 #include "multibandKernel.h"
-#include "mc920.h"
 
 MultibandImage *pooling(MultibandImage *img, int stride, float radio, float alpha);
 MultibandImage *normalize(MultibandImage *img, AdjRel *A);

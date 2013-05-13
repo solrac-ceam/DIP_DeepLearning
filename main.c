@@ -1,9 +1,10 @@
-#include "project.h"
+#include "dplrgcommon.h"
+#include "deeplearning.h"
 
 int main(int argc, char** argv)
 {
     int i;
-    char *filename = "image.pgm";
+    char *filename = "parasito_01_001.pgm";
     int filterSize = 3;
     int n = 64;
     int n2 =128;
@@ -87,6 +88,24 @@ int main(int argc, char** argv)
 
     Write2CSV(&normalized, 1, "result.csv");
     DestroyMultibandImage(&normalized);
+
+    /*struct stat st = {0};
+    if (stat("directorioPrueba", &st) == -1) {
+        if (mkdir("directorioPrueba", 0777) == -1){
+            Error("cannot create directory.", "WriteMultibandImageToGrayImages");
+        }
+    }
+    char name[30] = "";
+    char extencion[10] = "";
+    char file[] = "nombrearchivo.extencion";
+    char *ptc;
+
+    ptc = strchr(file, '.');
+    strcpy(extencion, ptc+1);
+    *ptc = '\0';
+    strcpy(name, file);
+
+    printf("name: %s, ext: %s", name, extencion);*/
     return 0;
 
 }

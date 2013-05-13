@@ -1,12 +1,13 @@
-#ifndef PROJECT_H_
-#define PROJECT_H_
+#ifndef _DPLRGCOMMON_H_
+#define _DPLRGCOMMON_H_
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "deeplearning.h"
-#include "multibandImage.h"
-#include "multibandKernel.h"
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <float.h>
 #include "mc920.h"
 
 

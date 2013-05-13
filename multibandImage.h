@@ -1,6 +1,7 @@
 #ifndef _MULTIBANDIMAGE_H_
 #define _MULTIBANDIMAGE_H_
 
+#include "dplrgcommon.h"
 
 /*Agregado por Pablo Fonseca */
 
@@ -11,7 +12,7 @@ typedef struct _bands {
 typedef struct _multibandImage {
   int   nx,ny;      /* dimensoes da imagem */
   int   nbands;     /* numero de bandas*/
-  Bands **band;      /* matriz com as basdas dos pixels */
+  Bands **band;     /* matriz com as basdas dos pixels */
   float dx,dy;      /* tamanho do pixel em unidades de comprimento */
   char  unid[10];   /* unidade de comprimento */
 } MultibandImage;
@@ -27,5 +28,7 @@ MultibandImage   *AppendMultibandImageHowBand(MultibandImage *imgSource, Multiba
 
 MultibandImage   *AppendManyMultibandImages(MultibandImage **images, int n);
 MultibandImage   *AppendMultibandImages(MultibandImage *img1, MultibandImage *img2);
-void  Write2CSV(MultibandImage **images, int n, char * filename);
+void              Write2CSV(MultibandImage **images, int n, char * filename);
+void              WriteOneBandOfMultibandImageToGrayImage(MultibandImage *I, int band, char *filename);
+void              WriteMultibandImageToGrayImages(MultibandImage *mbImg, char *filename);
 #endif // _MULTIBANDIMAGE_H_
