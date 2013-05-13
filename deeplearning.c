@@ -57,6 +57,7 @@ MultibandImage *pooling(MultibandImage *img, int stride, float radio, float alph
 
 MultibandImage *MultibandCorrelation(MultibandImage *img, MultibandKernel *K, int activation_type)
 {
+
   int     xp, yp, i;
   int     xq, yq,j;
   MultibandImage  *corr = CreateMultibandImage(img->nx, img->ny, 1);
