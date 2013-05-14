@@ -218,7 +218,7 @@ MultibandImage   *AppendManyMultibandImages(MultibandImage **images, int n)
     return result;
 }
 
-void  Write2CSV(MultibandImage **images, int n, char * filename)
+void  Write2CSV(MultibandImage **images, int n, char * filename, char* tag)
 {
     int i,band, y, x;
     FILE *fp=NULL;
@@ -229,11 +229,12 @@ void  Write2CSV(MultibandImage **images, int n, char * filename)
       for(band=0; band<images[i]->nbands; band++){
         for (y=0; y < images[i]->ny; y++){
            for (x=0; x< images[i]->nx; x++){
-               fprintf(fp,"%f, ", images[i]->band[y][x].val[band]);;
+               fprintf(fp,"%f, ", images[i]->band[y][x].val[band]);
             }
           }
         }
     }
+    fprintf(fp,"%s, ", tag);
     fprintf(fp,"\n");
     fclose(fp);
 

@@ -51,7 +51,7 @@ int main(int argc, char** argv)
     int n3 =256;
     int stride = 2;
     float radio = 2;
-    float alpha = 2;
+    float alpha = 10;
     int activation = ACTIVATION_MAX;
     int times = 0;
 
@@ -99,8 +99,9 @@ int main(int argc, char** argv)
         DestroyMultibandImage(&im);
         im = layer_result;
 
+
         //Write result
-        Write2CSV(&im, 1, "result.csv");
+        Write2CSV(&im, 1, "result.csv", filename);
 
         //Destroy
         DestroyMultibandImage(&im);
