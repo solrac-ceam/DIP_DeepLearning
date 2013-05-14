@@ -1,10 +1,50 @@
 #include "dplrgcommon.h"
 #include "deeplearning.h"
 
+
+
+
+MultibandImage *layer0(MultibandImage *im){
+    AdjRel *rectangular = Rectangular(3,3);
+    MultibandImage *normalized;
+    normalized = normalize(im, rectangular);
+    DestroyAdjRel(&rectangular);
+    return normalized;
+
+}
+
+MultibandImage *layer_n(MultibandImage *im, int n_filters, int prior_n_filters, MultibandKernel **kernels, int activation, int stride, float radio, float alpha){
+    int i;
+    MultibandImage **images;
+    MultibandImage *pooled, *normalized, *appended;
+    AdjRel *rectangular = Rectangular(3,3);
+
+    images = (MultibandImage **)calloc(n_filters,sizeof(MultibandImage**));
+    for(i=0; i< n_filters; i++)
+    {
+        images[i] = MultibandCorrelation(im, kernels[i], activation);
+    }
+    appended = AppendManyMultibandImages(images, n_filters);
+    for(i=0; i<n_filters; i++){
+        DestroyMultibandImage(&images[i]);
+    }
+    free(images);
+    pooled = pooling(appended, stride, radio, alpha);
+    DestroyMultibandImage(&appended);
+    normalized = normalize(pooled, rectangular);
+    DestroyMultibandImage(&pooled);
+    DestroyAdjRel(&rectangular);
+    return normalized;
+}
+
+
+
+
 int main(int argc, char** argv)
 {
-    int i;
-    char *filename = "parasito_01_001.pgm";
+    char c;
+    int i, aux;
+    char filename[200];
     int filterSize = 3;
     int n = 64;
     int n2 =128;
@@ -13,81 +53,73 @@ int main(int argc, char** argv)
     float radio = 2;
     float alpha = 2;
     int activation = ACTIVATION_MAX;
-    MultibandKernel **kernels = generateKernelBank(filterSize,filterSize,1,n);
-    MultibandImage **images = (MultibandImage **)calloc(n,sizeof(MultibandImage**));
-    MultibandImage *im = ReadGrayImageIntoMultibandImage(filename);
-    MultibandImage *appended, *pooled, *normalized;
-    AdjRel *rectangular = Rectangular(3,3);
+    int times = 0;
 
 
-    //Layer 0
-    normalized = normalize(im, rectangular);
-    DestroyMultibandImage(&im);
-    im = normalized;
-    normalized = NULL;
+    //Generate Random Filter Banks
+    MultibandKernel **kernels1 = generateKernelBank(filterSize,filterSize,1,n);
+    MultibandKernel **kernels2 = generateKernelBank(filterSize,filterSize,n,n2);
+    MultibandKernel **kernels3 = generateKernelBank(filterSize,filterSize,n2,n3);
+    printf("Created Multiband Kernels for convolution\n");
 
+    //Read image
+    MultibandImage *im;
+    MultibandImage *layer_result;
 
-    //First layer
-    for(i=0; i< n; i++)
-    {
-        images[i] = MultibandCorrelation(im, kernels[i], activation);
+    printf("Started bucle\n");
+    while(1){
+        aux = 0;
+        times++;
+        while((c=getchar()) && c!='\n')
+           filename[aux++] = c;
+        filename[aux] = '\0';
+
+        if(strcmp(filename, "END")==0)
+            break;
+
+        printf("Image %d\n", times);
+        im = ReadGrayImageIntoMultibandImage(filename);
+        //Layer 0
+        layer_result = layer0(im);
+        DestroyMultibandImage(&im);
+        im = layer_result;
+
+        //Layer 1
+        layer_result = layer_n(im, n, 1, kernels1, activation, stride, radio, alpha);
+        DestroyMultibandImage(&im);
+        im = layer_result;
+
+        //Layer 2
+        layer_result = layer_n(im, n2, n, kernels2, activation, stride, radio, alpha);
+        DestroyMultibandImage(&im);
+        im = layer_result;
+
+        //Layer 3
+        layer_result = layer_n(im, n3, n2, kernels3, activation, stride, radio, alpha);
+        DestroyMultibandImage(&im);
+        im = layer_result;
+
+        //Write result
+        Write2CSV(&im, 1, "result.csv");
+
+        //Destroy
+        DestroyMultibandImage(&im);
     }
-    appended = AppendManyMultibandImages(images, n);
+
     for(i=0; i<n; i++){
-        DestroyMultibandImage(&images[i]);
-        DestroyMultibandKernel(&kernels[i]);
+        DestroyMultibandKernel(&kernels1[i]);
     }
-    free(images);
-    free(kernels);
-    pooled = pooling(appended, stride, radio, alpha);
-    DestroyMultibandImage(&appended);
-    normalized = normalize(pooled, rectangular);
-    DestroyMultibandImage(&pooled);
+    for(i=0; i<n2; i++){
+        DestroyMultibandKernel(&kernels2[i]);
+    }
+    for(i=0; i<n3; i++){
+        DestroyMultibandKernel(&kernels3[i]);
+    }
 
-    //Second layer
-    images = (MultibandImage **)calloc(n2,sizeof(MultibandImage**));
-    kernels = generateKernelBank(filterSize,filterSize,n,n2);
-    for(i=0; i< n2; i++)
-    {
-        images[i] = MultibandCorrelation(normalized, kernels[i], activation);
-    }
-    appended = AppendManyMultibandImages(images, n2);
-    DestroyMultibandImage(&normalized);
-    for(i=0; i<n; i++){
-        DestroyMultibandImage(&images[i]);
-        DestroyMultibandKernel(&kernels[i]);
-    }
-    free(images);
-    free(kernels);
-    pooled = pooling(appended, stride, radio, alpha);
-    DestroyMultibandImage(&appended);
-    normalized = normalize(pooled, rectangular);
-    DestroyMultibandImage(&pooled);
+    free(kernels1);
+    free(kernels2);
+    free(kernels3);
 
-    //Third layer
-    images = (MultibandImage **)calloc(n3,sizeof(MultibandImage**));
-    kernels = generateKernelBank(filterSize,filterSize,n2,n3);
-    for(i=0; i< n3; i++)
-    {
-        images[i] = MultibandCorrelation(normalized, kernels[i], activation);
-    }
-    appended = AppendManyMultibandImages(images, n3);
-    DestroyMultibandImage(&normalized);
-    for(i=0; i<n; i++){
-        DestroyMultibandImage(&images[i]);
-        DestroyMultibandKernel(&kernels[i]);
-    }
-    free(images);
-    free(kernels);
-    pooled = pooling(appended, stride, radio, alpha);
-    DestroyMultibandImage(&appended);
-    normalized = normalize(pooled, rectangular);
-    DestroyMultibandImage(&pooled);
-
-    //Write result
-
-    Write2CSV(&normalized, 1, "result.csv");
-    DestroyMultibandImage(&normalized);
 
     /*struct stat st = {0};
     if (stat("directorioPrueba", &st) == -1) {
