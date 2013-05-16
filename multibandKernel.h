@@ -11,7 +11,7 @@ typedef struct _multibandkernel {
     int nbands;     /* numero de bandas */
 } MultibandKernel;
 
-AdjRel             *Rectangular(int nx, int ny);
+AdjRel             *RectangularKernel(int nx, int ny);
 MultibandKernel    *CreateMultibandKernel(AdjRel *A, int nbands);
 int                 MaximumDisplacementMK(MultibandKernel *K);
 MultibandKernel    *CreateMultibandRndKernel(int nx, int ny, int nbands);

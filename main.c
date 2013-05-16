@@ -5,7 +5,7 @@
 
 
 MultibandImage *layer0(MultibandImage *im){
-    AdjRel *rectangular = Rectangular(3,3);
+    AdjRel *rectangular = RectangularKernel(3,3);
     MultibandImage *normalized;
     normalized = normalize(im, rectangular);
     DestroyAdjRel(&rectangular);
@@ -17,7 +17,7 @@ MultibandImage *layer_n(MultibandImage *im, int n_filters, int prior_n_filters, 
     int i;
     MultibandImage **images;
     MultibandImage *pooled, *normalized, *appended;
-    AdjRel *rectangular = Rectangular(3,3);
+    AdjRel *rectangular = RectangularKernel(3,3);
 
     images = (MultibandImage **)calloc(n_filters,sizeof(MultibandImage**));
     for(i=0; i< n_filters; i++)
@@ -45,13 +45,13 @@ int main(int argc, char** argv)
     char c;
     int i, aux;
     char filename[200];
-    int filterSize = 3;
-    int n = 64;
-    int n2 =128;
-    int n3 =256;
-    int stride = 2;
-    float radio = 2;
-    float alpha = 10;
+    int filterSize = atoi(argv[1]);
+    int n = atoi(argv[2]);
+    int n2 =atoi(argv[3]);
+    int n3 =atoi(argv[4]);
+    int stride = atoi(argv[5]);
+    float radio = atof(argv[6]);
+    float alpha = atof(argv[7]);
     int activation = ACTIVATION_MAX;
     int times = 0;
 

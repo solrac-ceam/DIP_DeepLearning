@@ -7,24 +7,31 @@ MultibandImage *normalize(MultibandImage *img, AdjRel *A){
     MultibandImage  *normalized = CreateMultibandImage(img->nx, img->ny, img->nbands);
 
 
-    for (band=0; band<img->nbands; band++)
+
         for (yp=0; yp < img->ny; yp++)
-            for (xp=0; xp < img->nx; xp++) {
-                val = 0.0;
-                for (i=0; i < A->n; i++) {
-                    xq = xp + A->adj[i].dx;
-                    yq = yp + A->adj[i].dy;
-                    if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)){
-                        val += ((img->band[yq][xq].val[band])*(img->band[yq][xq].val[band]));
+            for (xp=0; xp < img->nx; xp++)
+            {
+                    val = 0.0;
+                    for (i=0; i < A->n; i++) {
+                        xq = xp + A->adj[i].dx;
+                        yq = yp + A->adj[i].dy;
+                        if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)){
+                            for (band=0; band<img->nbands; band++){
+                                val += ((img->band[yq][xq].val[band])*(img->band[yq][xq].val[band]));
+                            }
+                            for (band=0; band<img->nbands; band++){
+                                if (val != 0.0) {
+                                    normalized->band[yp][xp].val[band] = ((img->band[yp][xp].val[band])/sqrt(val));
+                                }
+                                else {
+                                    normalized->band[yp][xp].val[band] = 0.0;
+                                }
+                            }
+                        }
                     }
-                }
-                if (val != 0.0) {
-                    normalized->band[yp][xp].val[band] = ((img->band[yp][xp].val[band])/sqrt(val));
-                }
-                else {
-                    normalized->band[yp][xp].val[band] = 0.0;
-                }
+
             }
+
 
     return(normalized);
 
@@ -32,7 +39,7 @@ MultibandImage *normalize(MultibandImage *img, AdjRel *A){
 
 MultibandImage *pooling(MultibandImage *img, int stride, float radio, float alpha){
 
-  AdjRel *A = Circular(radio);
+  AdjRel *A = RectangularKernel(round(radio), round(radio));
   int     xq, yq, band, yp, xp,i;
   MultibandImage  *pooling = CreateMultibandImage(img->nx/stride + (((img->nx % stride) != 0) ? 1:0), img->ny/stride + (((img->ny % stride) != 0) ? 1:0), img->nbands);
   float   val;
