@@ -1,4 +1,5 @@
 #include "deeplearning.h"
+#include <omp.h>
 
 MultibandImage *normalize(MultibandImage *img, AdjRel *A){
 
@@ -6,29 +7,33 @@ MultibandImage *normalize(MultibandImage *img, AdjRel *A){
     float   val;
     MultibandImage  *normalized = CreateMultibandImage(img->nx, img->ny, img->nbands);
 
-
-
         for (yp=0; yp < img->ny; yp++)
             for (xp=0; xp < img->nx; xp++)
             {
                     val = 0.0;
+
+
                     for (i=0; i < A->n; i++) {
                         xq = xp + A->adj[i].dx;
                         yq = yp + A->adj[i].dy;
+
                         if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)){
+
                             for (band=0; band<img->nbands; band++){
                                 val += ((img->band[yq][xq].val[band])*(img->band[yq][xq].val[band]));
                             }
-                            for (band=0; band<img->nbands; band++){
-                                if (val != 0.0) {
-                                    normalized->band[yp][xp].val[band] = ((img->band[yp][xp].val[band])/sqrt(val));
-                                }
-                                else {
-                                    normalized->band[yp][xp].val[band] = 0.0;
-                                }
-                            }
                         }
                     }
+
+                    for (band=0; band<img->nbands; band++){
+                         if (val != 0.0) {
+                             normalized->band[yp][xp].val[band] = ((img->band[yp][xp].val[band])/sqrt(val));
+                         }
+                         else {
+                             normalized->band[yp][xp].val[band] = 0.0;
+                         }
+                     }
+
 
             }
 
@@ -48,6 +53,7 @@ MultibandImage *pooling(MultibandImage *img, int stride, float radio, float alph
      for (yp=0; yp < img->ny; yp+=stride)
         for (xp=0; xp < img->nx; xp+=stride){
           val = 0.0;
+
           for (i=0; i < A->n; i++) {
             xq = xp + A->adj[i].dx;
             yq = yp + A->adj[i].dy;
@@ -77,6 +83,7 @@ MultibandImage *MultibandCorrelation(MultibandImage *img, MultibandKernel *K, in
         xq = xp + K->A->adj[i].dx;
         yq = yp + K->A->adj[i].dy;
         if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)){
+
           for(j=0; j< img->nbands; j++){
             val += ((img->band[yq][xq].val[j]) * (K->w[i][j]));
           }
