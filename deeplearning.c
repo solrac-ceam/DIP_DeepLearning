@@ -3,41 +3,38 @@
 
 MultibandImage *normalize(MultibandImage *img, AdjRel *A){
 
-    int     xq, yq, band, yp, xp,i;
+    int     xq, yq, band, yp, xp,i, alt;
     float   val;
     MultibandImage  *normalized = CreateMultibandImage(img->nx, img->ny, img->nbands);
 
-        for (yp=0; yp < img->ny; yp++)
-            for (xp=0; xp < img->nx; xp++)
-            {
-                    val = 0.0;
+#pragma omp parallel for num_threads(50) shared(normalized, img) private(xq, yq, band, yp, xp, i, val, alt)
+for(alt = 0; alt < img->ny*img->nx; alt++)
+// for (yp=0; yp < img->ny; yp++)
+//    for (xp=0; xp < img->nx; xp++)
+  {
+    xp = alt / img->nx;
+    yp = alt % img->nx;
+            val = 0.0;
+            for (i=0; i < A->n; i++) {
+                xq = xp + A->adj[i].dx;
+                yq = yp + A->adj[i].dy;
+                if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)){
+                  for (band=0; band<img->nbands; band++){
+                     val += ((img->band[yq][xq].val[band])*(img->band[yq][xq].val[band]));
+                  }
+                }
+             }
+             for (band=0; band<img->nbands; band++){
+                 if (val != 0.0) {
+                    normalized->band[yp][xp].val[band] = ((img->band[yp][xp].val[band])/sqrt(val));
+                 }
+                 else {
+                    normalized->band[yp][xp].val[band] = 0.0;
+                 }
+              }
 
 
-                    for (i=0; i < A->n; i++) {
-                        xq = xp + A->adj[i].dx;
-                        yq = yp + A->adj[i].dy;
-
-                        if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)){
-
-                            for (band=0; band<img->nbands; band++){
-                                val += ((img->band[yq][xq].val[band])*(img->band[yq][xq].val[band]));
-                            }
-                        }
-                    }
-
-                    for (band=0; band<img->nbands; band++){
-                         if (val != 0.0) {
-                             normalized->band[yp][xp].val[band] = ((img->band[yp][xp].val[band])/sqrt(val));
-                         }
-                         else {
-                             normalized->band[yp][xp].val[band] = 0.0;
-                         }
-                     }
-
-
-            }
-
-
+    }
     return(normalized);
 
 }
@@ -48,12 +45,11 @@ MultibandImage *pooling(MultibandImage *img, int stride, float radio, float alph
   int     xq, yq, band, yp, xp,i;
   MultibandImage  *pooling = CreateMultibandImage(img->nx/stride + (((img->nx % stride) != 0) ? 1:0), img->ny/stride + (((img->ny % stride) != 0) ? 1:0), img->nbands);
   float   val;
-
+  #pragma omp parallel for num_threads(64) shared(pooling, A, img, radio, alpha) private(xq,yq,band,yp,xp,i, val)
   for(band=0; band<img->nbands; band++)
      for (yp=0; yp < img->ny; yp+=stride)
         for (xp=0; xp < img->nx; xp+=stride){
           val = 0.0;
-
           for (i=0; i < A->n; i++) {
             xq = xp + A->adj[i].dx;
             yq = yp + A->adj[i].dy;
@@ -71,14 +67,18 @@ MultibandImage *pooling(MultibandImage *img, int stride, float radio, float alph
 MultibandImage *MultibandCorrelation(MultibandImage *img, MultibandKernel *K, int activation_type)
 {
 
-  int     xp, yp, i;
+  int     xp, yp, i, alt;
   int     xq, yq,j;
   MultibandImage  *corr = CreateMultibandImage(img->nx, img->ny, 1);
   float   val;
-
- for (yp=0; yp < img->ny; yp++)
-    for (xp=0; xp < img->nx; xp++){
-      val = 0.0;
+#pragma omp parallel for num_threads(50) shared(corr, img) private(xq, yq, j, yp, xp, i, val, alt)
+for(alt = 0; alt < img->ny*img->nx; alt++)
+// for (yp=0; yp < img->ny; yp++)
+//    for (xp=0; xp < img->nx; xp++)
+  {
+    xp = alt / img->nx;
+    yp = alt % img->nx;
+    val = 0.0;
       for (i=0; i < K->A->n; i++) {
         xq = xp + K->A->adj[i].dx;
         yq = yp + K->A->adj[i].dy;
