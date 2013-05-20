@@ -1,5 +1,6 @@
 #include "dplrgcommon.h"
 #include "deeplearning.h"
+#include <omp.h>
 
 
 
@@ -20,6 +21,8 @@ MultibandImage *layer_n(MultibandImage *im, int n_filters, int prior_n_filters, 
     AdjRel *rectangular = RectangularKernel(3,3);
 
     images = (MultibandImage **)calloc(n_filters,sizeof(MultibandImage**));
+
+    #pragma omp parallel for num_threads(64) shared(images, im, n_filters, kernels, activation) private(i)
     for(i=0; i< n_filters; i++)
     {
         images[i] = MultibandCorrelation(im, kernels[i], activation);
