@@ -22,7 +22,7 @@ MultibandImage *layer_n(MultibandImage *im, int n_filters, int prior_n_filters, 
 
     images = (MultibandImage **)calloc(n_filters,sizeof(MultibandImage**));
 
-    #pragma omp parallel for num_threads(64) shared(images, im, n_filters, kernels, activation) private(i)
+
     for(i=0; i< n_filters; i++)
     {
         images[i] = MultibandCorrelation(im, kernels[i], activation);
@@ -41,46 +41,32 @@ MultibandImage *layer_n(MultibandImage *im, int n_filters, int prior_n_filters, 
 }
 
 
-
-
-int main(int argc, char** argv)
+void body(
+    int filterSize,
+    int n,
+    int n2,
+    int n3,
+    int stride,
+    float radio,
+    float alpha,
+    int activation,
+    MultibandKernel **kernels1,
+    MultibandKernel **kernels2,
+    MultibandKernel **kernels3)
 {
+    int aux = 0;
     char c;
-    int i, aux;
     char filename[200];
-    int filterSize = atoi(argv[1]);
-    int n = atoi(argv[2]);
-    int n2 =atoi(argv[3]);
-    int n3 =atoi(argv[4]);
-    int stride = atoi(argv[5]);
-    float radio = atof(argv[6]);
-    float alpha = atof(argv[7]);
-    int activation = ACTIVATION_MAX;
-    int times = 0;
-
-
-    //Generate Random Filter Banks
-    MultibandKernel **kernels1 = generateKernelBank(filterSize,filterSize,1,n);
-    MultibandKernel **kernels2 = generateKernelBank(filterSize,filterSize,n,n2);
-    MultibandKernel **kernels3 = generateKernelBank(filterSize,filterSize,n2,n3);
-    printf("Created Multiband Kernels for convolution\n");
-
     //Read image
     MultibandImage *im;
     MultibandImage *layer_result;
+        #pragma omp critical
+        {
+            while((c=getchar()) && c!='\n')
+               filename[aux++] = c;
+            filename[aux] = '\0';
+        }
 
-    printf("Started bucle\n");
-    while(1){
-        aux = 0;
-        times++;
-        while((c=getchar()) && c!='\n')
-           filename[aux++] = c;
-        filename[aux] = '\0';
-
-        if(strcmp(filename, "END")==0)
-            break;
-
-        printf("Image %d\n", times);
         im = ReadGrayImageIntoMultibandImage(filename);
         //Layer 0
         layer_result = layer0(im);
@@ -104,10 +90,44 @@ int main(int argc, char** argv)
 
 
         //Write result
-        Write2CSV(&im, 1, "result.csv", filename);
-
+        #pragma omp critical
+        {
+            Write2CSV(&im, 1, "result.csv", filename);
+        }
         //Destroy
         DestroyMultibandImage(&im);
+}
+
+int main(int argc, char** argv)
+{
+    int loops,i;
+
+
+    int filterSize = atoi(argv[1]);
+    int n = atoi(argv[2]);
+    int n2 =atoi(argv[3]);
+    int n3 =atoi(argv[4]);
+    int stride = atoi(argv[5]);
+    float radio = atof(argv[6]);
+    float alpha = atof(argv[7]);
+    int activation = ACTIVATION_MAX;
+
+
+
+    //Generate Random Filter Banks
+    MultibandKernel **kernels1 = generateKernelBank(filterSize,filterSize,1,n);
+    MultibandKernel **kernels2 = generateKernelBank(filterSize,filterSize,n,n2);
+    MultibandKernel **kernels3 = generateKernelBank(filterSize,filterSize,n2,n3);
+    printf("Created Multiband Kernels for convolution\n");
+
+
+
+    printf("Started bucle\n");
+
+    #pragma omp parallel for private(loops) num_threads(8)
+    for(loops=0; loops<13000; loops++){
+        printf("Image %d\n", loops+1);
+        body(filterSize, n, n2, n3, stride, radio, alpha, activation, kernels1, kernels2, kernels3);
     }
 
     for(i=0; i<n; i++){
