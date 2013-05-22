@@ -2,7 +2,7 @@
 
 /*Agregado por Pablo Fonseca */
 
-AdjRel *Rectangular(int nx, int ny)
+AdjRel *RectangularKernel(int nx, int ny)
 {
     AdjRel *A=NULL;
     int     dx,dy,n,i;
@@ -13,8 +13,8 @@ AdjRel *Rectangular(int nx, int ny)
     i=0;
     for (dy=0; dy < ny; dy++)
         for (dx=0; dx < nx; dx++) {
-            A->adj[i].dx = dx;
-            A->adj[i].dy = dy;
+            A->adj[i].dx = dx-nx/2;
+            A->adj[i].dy = dy-ny/2;
             A->adj[i].dz = 0;
             i++;
         }
@@ -66,15 +66,13 @@ MultibandKernel *CreateMultibandRndKernel(int nx, int ny, int nbands)
     float d;
     int i,dz;
     float sum=0.0, squaredsum=0.0, mean, l2norm;
-    AdjRel *A = Rectangular(nx,ny);
+    AdjRel *A = RectangularKernel(nx,ny);
     MultibandKernel *K = CreateMultibandKernel(A, nbands);
 
-
-    srand(time(NULL));
     for(i=0; i < K->A->n; i++){
         for(dz=0; dz < nbands; dz++){
-            //d = (float) rand () / ((float) RAND_MAX + 1);
-            d = (float) rand();
+            d = (float) rand () / ((float) RAND_MAX + 1);
+            //d = (float) rand();
             sum += d;
             K->w[i][dz] = d;
         }
@@ -173,6 +171,7 @@ void writeMultibandKernel(MultibandKernel *K, char *filename)
 
 MultibandKernel **generateKernelBank(int nx, int ny, int nbands, int n){
     int i;
+    srand(time(NULL));
     MultibandKernel **kernelBank = (MultibandKernel **)calloc(n,sizeof(MultibandKernel *));
 
     for(i=0; i<n; i++){
