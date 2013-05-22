@@ -31,4 +31,4 @@ DIP_DeepLearning.layout
 *~
 *.orig
 *.pgm
-*.cvs
+*.csv

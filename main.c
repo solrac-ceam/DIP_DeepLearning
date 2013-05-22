@@ -137,7 +137,10 @@ int main(int argc, char** argv)
     *ptc = '\0';
     strcpy(name, file);
 
-    printf("name: %s, ext: %s", name, extencion);*/
+    printf("name: %s, ext: %s", name, extencion);
+    FILE *fp=NULL;
+    fp = fopen("directorioPrueba/img1.img", "wb");
+    fclose(fp);*/
     return 0;
 
 }
