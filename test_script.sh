@@ -1,6 +1,6 @@
 rm result.test result.train  output.svm  model.svm result.csv
 date > started.time
-time ./DIP_DeepLearning  5 64 128 256 2 5 2 5 1807 < files.list
+time ./DIP_DeepLearning  5 32 64 128 2 5 2 5 1807 < files.list
 date > deep.time
 svm-subset -s 0 result.csv 181 result.test result.train
 date > subset.time
