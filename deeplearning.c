@@ -53,8 +53,7 @@ MultibandImage *pooling(MultibandImage *img, int stride, float radio, float alph
                val += pow(img->band[yq][xq].val[band], alpha);
             }
           }
-          val = pow(val, 1/alpha);
-          pooling->band[yp/stride][xp/stride].val[band] = val;
+          pooling->band[yp/stride][xp/stride].val[band] = pow(val, 1/alpha);
      }
      return(pooling);
 
