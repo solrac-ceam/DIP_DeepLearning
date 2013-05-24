@@ -22,12 +22,7 @@ for (yp=0; yp < img->ny; yp++)
                 }
              }
              for (band=0; band<img->nbands; band++){
-                 if (val != 0.0) {
-                    normalized->band[yp][xp].val[band] = ((img->band[yp][xp].val[band])/sqrt(val));
-                 }
-                 else {
-                    normalized->band[yp][xp].val[band] = 0.0;
-                 }
+                  normalized->band[yp][xp].val[band] = (val != 0.0) ? ((img->band[yp][xp].val[band])/sqrt(val)): 0.0;
               }
 
 

@@ -117,7 +117,7 @@ int main(int argc, char** argv)
     int activation = ACTIVATION_MAX;
 
 
-
+    srand(time(NULL));
     //Generate Random Filter Banks
     MultibandKernel **kernels1 = generateKernelBank(filterSize,filterSize,1,n);
     MultibandKernel **kernels2 = generateKernelBank(filterSize,filterSize,n,n2);
