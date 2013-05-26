@@ -19,10 +19,10 @@ MultibandImage *normalize(MultibandImage *img, AdjRel *A){
                         val += ((img->band[yq][xq].val[band])*(img->band[yq][xq].val[band]));
                     }
                 }
-             }
-             for (band=0; band<img->nbands; band++){
-                  normalized->band[yp][xp].val[band] = (val != 0.0) ? ((img->band[yp][xp].val[band])/sqrt(val)): 0.0;
-              }
+            }
+            for (band=0; band<img->nbands; band++){
+                normalized->band[yp][xp].val[band] = (val != 0.0) ? ((img->band[yp][xp].val[band])/sqrt(val)): 0.0;
+            }
 
 
     }
@@ -32,25 +32,24 @@ MultibandImage *normalize(MultibandImage *img, AdjRel *A){
 
 MultibandImage *pooling(MultibandImage *img, int stride, float radio, float alpha){
 
-  AdjRel *A = RectangularKernel(round(radio), round(radio));
-  int     xq, yq, band, yp, xp,i;
-  MultibandImage  *pooling = CreateMultibandImage(img->nx/stride + (((img->nx % stride) != 0) ? 1:0), img->ny/stride + (((img->ny % stride) != 0) ? 1:0), img->nbands);
-  float   val;
-  for(band=0; band<img->nbands; band++)
-     for (yp=0; yp < img->ny; yp+=stride)
-        for (xp=0; xp < img->nx; xp+=stride){
-            val = 0.0;
-            for (i=0; i < A->n; i++) {
-                xq = xp + A->adj[i].dx;
-                yq = yp + A->adj[i].dy;
-                if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)){
-                    val += pow(img->band[yq][xq].val[band], alpha);
+    AdjRel *A = RectangularKernel(round(radio), round(radio));
+    int     xq, yq, band, yp, xp,i;
+    MultibandImage  *pooling = CreateMultibandImage(img->nx/stride + (((img->nx % stride) != 0) ? 1:0), img->ny/stride + (((img->ny % stride) != 0) ? 1:0), img->nbands);
+    float   val;
+    for(band=0; band<img->nbands; band++)
+        for (yp=0; yp < img->ny; yp+=stride)
+            for (xp=0; xp < img->nx; xp+=stride){
+                val = 0.0;
+                for (i=0; i < A->n; i++) {
+                    xq = xp + A->adj[i].dx;
+                    yq = yp + A->adj[i].dy;
+                    if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)){
+                        val += pow(img->band[yq][xq].val[band], alpha);
+                    }
                 }
+                pooling->band[yp/stride][xp/stride].val[band] = pow(val, 1/alpha);
             }
-          }
-          pooling->band[yp/stride][xp/stride].val[band] = pow(val, 1/alpha);
-     }
-     return(pooling);
+    return(pooling);
 }
 
 MultibandImage *MultibandCorrelation(MultibandImage *img, MultibandKernel *K, int activation_type)
@@ -61,21 +60,37 @@ MultibandImage *MultibandCorrelation(MultibandImage *img, MultibandKernel *K, in
     float   val;
 
 
-    for (yp=0; yp < img->ny; yp++)
-    for (xp=0; xp < img->nx; xp++) {
-        val = 0.0;
-        for (i=0; i < K->A->n; i++) {
-            xq = xp + K->A->adj[i].dx;
-            yq = yp + K->A->adj[i].dy;
-            if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)){
+    /*for (yp=0; yp < img->ny; yp++)
+        for (xp=0; xp < img->nx; xp++) {
+            val = 0.0;
+            for (i=0; i < K->A->n; i++) {
+                xq = xp + K->A->adj[i].dx;
+                yq = yp + K->A->adj[i].dy;
+                if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)){
+                    for(j=0; j< img->nbands; j++){
+                        val += ((img->band[yq][xq].val[j]) * (K->w[i][j]));
+                    }
+                }
+            }
+            corr->band[yp][xp].val[0] = activation(val, activation_type);
+        }
+        */
+
+    int     dmax = MaximumDisplacementMK(K);
+
+    for ( yp = dmax; yp < img->ny - dmax; yp++ ) {
+        for (xp = dmax; xp < img->nx - dmax; xp++ ) {
+            val = 0.0;
+            for (i=0; i < K->A->n; i++) {
+                xq = xp + K->A->adj[i].dx;
+                yq = yp + K->A->adj[i].dy;
                 for(j=0; j< img->nbands; j++){
                     val += ((img->band[yq][xq].val[j]) * (K->w[i][j]));
                 }
             }
+            corr->band[yp][xp].val[0] = activation(val, activation_type);
         }
-        corr->band[yp][xp].val[0] = activation(val, activation_type);
     }
-
     return(corr);
 }
 
