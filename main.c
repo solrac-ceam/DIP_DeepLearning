@@ -5,8 +5,8 @@
 
 
 
-MultibandImage *layer0(MultibandImage *im){
-    AdjRel *rectangular = RectangularKernel(3,3);
+MultibandImage *layer0(MultibandImage *im, int normalizationSize){
+    AdjRel *rectangular = RectangularKernel(normalizationSize,normalizationSize);
     MultibandImage *normalized;
     normalized = normalize(im, rectangular);
     DestroyAdjRel(&rectangular);
@@ -14,11 +14,12 @@ MultibandImage *layer0(MultibandImage *im){
 
 }
 
-MultibandImage *layer_n(MultibandImage *im, int n_filters, int prior_n_filters, MultibandKernel **kernels, int activation, int stride, float radio, float alpha){
+MultibandImage *layer_n(MultibandImage *im, int n_filters, int prior_n_filters, MultibandKernel **kernels, int activation, int stride, float radio, float alpha,
+                        int normalizationSize){
     int i;
     MultibandImage **images;
     MultibandImage *pooled, *normalized, *appended;
-    AdjRel *rectangular = RectangularKernel(3,3);
+    AdjRel *rectangular = RectangularKernel(normalizationSize,normalizationSize);
 
     images = (MultibandImage **)calloc(n_filters,sizeof(MultibandImage**));
 
@@ -52,7 +53,8 @@ void body(
     int activation,
     MultibandKernel **kernels1,
     MultibandKernel **kernels2,
-    MultibandKernel **kernels3)
+    MultibandKernel **kernels3,
+    int normalizationSize)
 {
     int aux = 0;
     char c;
@@ -69,22 +71,22 @@ void body(
 
         im = ReadGrayImageIntoMultibandImage(filename);
         //Layer 0
-        layer_result = layer0(im);
+        layer_result = layer0(im, normalizationSize);
         DestroyMultibandImage(&im);
         im = layer_result;
 
         //Layer 1
-        layer_result = layer_n(im, n, 1, kernels1, activation, stride, radio, alpha);
+        layer_result = layer_n(im, n, 1, kernels1, activation, stride, radio, alpha, normalizationSize);
         DestroyMultibandImage(&im);
         im = layer_result;
 
         //Layer 2
-        layer_result = layer_n(im, n2, n, kernels2, activation, stride, radio, alpha);
+        layer_result = layer_n(im, n2, n, kernels2, activation, stride, radio, alpha, normalizationSize);
         DestroyMultibandImage(&im);
         im = layer_result;
 
         //Layer 3
-        layer_result = layer_n(im, n3, n2, kernels3, activation, stride, radio, alpha);
+        layer_result = layer_n(im, n3, n2, kernels3, activation, stride, radio, alpha, normalizationSize);
         DestroyMultibandImage(&im);
         im = layer_result;
 
@@ -110,10 +112,12 @@ int main(int argc, char** argv)
     int stride = atoi(argv[5]);
     float radio = atof(argv[6]);
     float alpha = atof(argv[7]);
+    int normalizationSize = atoi(argv[8]);
+    int numimages = atoi(argv[9]);
     int activation = ACTIVATION_MAX;
 
 
-
+    srand(time(NULL));
     //Generate Random Filter Banks
     MultibandKernel **kernels1 = generateKernelBank(filterSize,filterSize,1,n);
     MultibandKernel **kernels2 = generateKernelBank(filterSize,filterSize,n,n2);
@@ -125,9 +129,9 @@ int main(int argc, char** argv)
     printf("Started bucle\n");
 
     #pragma omp parallel for private(loops) num_threads(8)
-    for(loops=0; loops<13000; loops++){
+    for(loops=0; loops<numimages; loops++){
         printf("Image %d\n", loops+1);
-        body(filterSize, n, n2, n3, stride, radio, alpha, activation, kernels1, kernels2, kernels3);
+        body(filterSize, n, n2, n3, stride, radio, alpha, activation, kernels1, kernels2, kernels3,  normalizationSize);
     }
 
     for(i=0; i<n; i++){

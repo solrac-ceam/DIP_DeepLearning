@@ -223,14 +223,17 @@ void  Write2CSV(MultibandImage **images, int n, char * filename, char* tag)
     int i,band, y, x, count=1;
     FILE *fp=NULL;
     fp = fopen(filename,"a");
-
+    printf("%s\n", tag);
     tag[4] = '\0';
+    printf("%d\n", atoi(tag));
     fprintf(fp,"%d", atoi(tag));
     for(i=0; i<n; i++){
       for(band=0; band<images[i]->nbands; band++){
         for (y=0; y < images[i]->ny; y++){
            for (x=0; x< images[i]->nx; x++){
-               fprintf(fp," %d:%f", count, images[i]->band[y][x].val[band]);
+               if(images[i]->band[y][x].val[band]!=0.0){
+                    fprintf(fp," %d:%f", count, images[i]->band[y][x].val[band]);
+               }
                count++;
             }
           }

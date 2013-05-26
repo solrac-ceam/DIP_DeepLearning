@@ -21,12 +21,7 @@ MultibandImage *normalize(MultibandImage *img, AdjRel *A){
                 }
             }
             for (band=0; band<img->nbands; band++){
-                if (val != 0.0) {
-                    normalized->band[yp][xp].val[band] = ((img->band[yp][xp].val[band])/sqrt(val));
-                }
-                else {
-                    normalized->band[yp][xp].val[band] = 0.0;
-                }
+                normalized->band[yp][xp].val[band] = (val != 0.0) ? ((img->band[yp][xp].val[band])/sqrt(val)): 0.0;
             }
         }
     return(normalized);
@@ -50,8 +45,7 @@ MultibandImage *pooling(MultibandImage *img, int stride, float radio, float alph
                     val += pow(img->band[yq][xq].val[band], alpha);
                 }
             }
-            val = pow(val, 1.0/alpha);
-            pooling->band[yp/stride][xp/stride].val[band] = val;
+            pooling->band[yp/stride][xp/stride].val[band] = pow(val, 1.0/alpha);
      }
      return(pooling);
 }
