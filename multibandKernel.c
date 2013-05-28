@@ -169,7 +169,8 @@ void writeMultibandKernel(MultibandKernel *K, char *filename)
     }
 }
 
-MultibandKernel **generateKernelBank(int nx, int ny, int nbands, int n){
+MultibandKernel **generateKernelBank(int nx, int ny, int nbands, int n)
+{
     int i;
 
     MultibandKernel **kernelBank = (MultibandKernel **)calloc(n,sizeof(MultibandKernel *));

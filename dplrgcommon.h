@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <float.h>
+#include <omp.h>
 #include "mc920.h"
 
 

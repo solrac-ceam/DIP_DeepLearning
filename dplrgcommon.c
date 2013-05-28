@@ -11,7 +11,6 @@ int remove_directory(const char *path)
     size_t len;
     struct stat statbuf;
 
-
     if (dir != NULL) {
         r = 0;
 

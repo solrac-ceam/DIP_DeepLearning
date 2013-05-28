@@ -1,5 +1,5 @@
 #include "deeplearning.h"
-#include <omp.h>
+
 
 MultibandImage *normalize(MultibandImage *img, AdjRel *A){
 
@@ -58,39 +58,122 @@ MultibandImage *MultibandCorrelation(MultibandImage *img, MultibandKernel *K, in
     int     xq, yq,j;
     MultibandImage  *corr = CreateMultibandImage(img->nx, img->ny, 1);
     float   val;
+    int     ypa, ypb, xpc, xpd, y_max, x_max, dmax;
 
+    /* dividimos la imagen en 5 partes:
+    *
+    *  +---------------------+
+    *  |                     |
+    *  |          a          |
+    *  +----+-----------+----+
+    *  |    |           |    |
+    *  |    |  cuadro   |    |
+    *  |  c |           | d  |
+    *  |    |  interno  |    |
+    *  |    |           |    |
+    *  +----+-----------+----+
+    *  |          b          |
+    *  |                     |
+    *  +---------------------+
+    *
+    */
 
-    /*for (yp=0; yp < img->ny; yp++)
-        for (xp=0; xp < img->nx; xp++) {
-            val = 0.0;
-            for (i=0; i < K->A->n; i++) {
-                xq = xp + K->A->adj[i].dx;
-                yq = yp + K->A->adj[i].dy;
-                if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)){
-                    for(j=0; j< img->nbands; j++){
-                        val += ((img->band[yq][xq].val[j]) * (K->w[i][j]));
+    dmax = MaximumDisplacementMK(K);
+    y_max = img->ny - dmax;
+    x_max = img->nx - dmax;
+
+    if (((x_max - 1) <= dmax) || ((y_max - 1) <= dmax)) {
+        for (yp=0; yp < img->ny; yp++)
+            for (xp=0; xp < img->nx; xp++) {
+                val = 0.0;
+                for (i=0; i < K->A->n; i++) {
+                    xq = xp + K->A->adj[i].dx;
+                    yq = yp + K->A->adj[i].dy;
+                    if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)){
+                        for(j=0; j< img->nbands; j++){
+                            val += ((img->band[yq][xq].val[j]) * (K->w[i][j]));
+                        }
                     }
                 }
+                corr->band[yp][xp].val[0] = activation(val, activation_type);
             }
-            corr->band[yp][xp].val[0] = activation(val, activation_type);
-        }
-        */
-
-    int     dmax = MaximumDisplacementMK(K);
-
-    for ( yp = dmax; yp < img->ny - dmax; yp++ ) {
-        for (xp = dmax; xp < img->nx - dmax; xp++ ) {
+        return corr;
+    }
+    // cuadro interno
+    for (yp = dmax; yp < y_max; yp++) {
+        for (xp = dmax; xp < x_max; xp++ ) {
             val = 0.0;
             for (i=0; i < K->A->n; i++) {
                 xq = xp + K->A->adj[i].dx;
                 yq = yp + K->A->adj[i].dy;
-                for(j=0; j< img->nbands; j++){
+                for(j=0; j< img->nbands; j++) {
                     val += ((img->band[yq][xq].val[j]) * (K->w[i][j]));
                 }
             }
             corr->band[yp][xp].val[0] = activation(val, activation_type);
         }
     }
+
+    //  Parte a y b
+    for (ypa = 0, ypb = y_max; ypa < dmax; ypa++, ypb++) {
+        for (xp = 0; xp < img->nx; xp++) {
+            //parte a
+            val = 0.0;
+            for (i=0; i < K->A->n; i++) {
+                xq = xp + K->A->adj[i].dx;
+                yq = ypa + K->A->adj[i].dy;
+                if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)) {
+                    for(j=0; j< img->nbands; j++) {
+                        val += ((img->band[yq][xq].val[j]) * (K->w[i][j]));
+                    }
+                }
+            }
+            corr->band[ypa][xp].val[0] = activation(val, activation_type);
+            //parte b
+            val = 0.0;
+            for (i=0; i < K->A->n; i++) {
+                xq = xp + K->A->adj[i].dx;
+                yq = ypb + K->A->adj[i].dy;
+                if ((xq >= 0)&&(xq < img->nx)&&(yq >= 0)&&(yq < img->ny)) {
+                    for(j=0; j< img->nbands; j++) {
+                        val += ((img->band[yq][xq].val[j]) * (K->w[i][j]));
+                    }
+                }
+            }
+            corr->band[ypb][xp].val[0] = activation(val, activation_type);
+        }
+    }
+
+    // Parte c y d
+    for (yp = dmax; yp < y_max; yp++) {
+        for (xpc = 0, xpd = x_max; xpc < dmax; xpc++, xpd++) {
+            //parte c
+            val = 0.0;
+            for (i=0; i < K->A->n; i++) {
+                xq = xpc + K->A->adj[i].dx;
+                yq = yp + K->A->adj[i].dy;
+                if ((xq >= 0)&&(xq < img->nx)) {
+                    for(j=0; j< img->nbands; j++) {
+                        val += ((img->band[yq][xq].val[j]) * (K->w[i][j]));
+                    }
+                }
+            }
+            corr->band[yp][xpc].val[0] = activation(val, activation_type);
+            //parte d
+            val = 0.0;
+            for (i=0; i < K->A->n; i++) {
+                xq = xpd + K->A->adj[i].dx;
+                yq = yp + K->A->adj[i].dy;
+                if ((xq >= 0)&&(xq < img->nx)) {
+                    for(j=0; j< img->nbands; j++) {
+                        val += ((img->band[yq][xq].val[j]) * (K->w[i][j]));
+                    }
+                }
+            }
+            corr->band[yp][xpd].val[0] = activation(val, activation_type);
+        }
+    }
+
     return(corr);
 }
 
