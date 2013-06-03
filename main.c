@@ -1,7 +1,22 @@
 #include "dplrgcommon.h"
 #include "deeplearning.h"
-#include <omp.h>
 
+typedef struct _parameters{
+    int fz_c1;
+    int fz_c2;
+    int fz_c3;
+    int fn_c1;
+    int fn_c2;
+    int fn_c3;
+    float alpha;
+    int stride;
+    int pz_c1;
+    int pz_c2;
+    int pz_c3;
+    int nz_c1;
+    int nz_c2;
+    int nz_c3;
+} Parameters;
 
 
 
@@ -100,10 +115,69 @@ void body(
         DestroyMultibandImage(&im);
 }
 
+void exit_with_help()
+{
+    printf("\
+USAGE: <fz_c1> <fz_c2> <fz_c3> <fn_c1> <fn_c2> <fn_c3> <alpha> <stride>\n\
+       OR\n\
+       -d <fz_c1> <fz_c2> <fz_c3> <fn_c1> <fn_c2> <fn_c3> <alpha> <stride> <pz_c1> <pz_c2> <pz_c3> <nz_c1> <nz_c2> <nz_c3>\n"
+    );
+    exit(EXIT_FAILURE);
+}
+
 int main(int argc, char** argv)
 {
-    int loops,i;
+    Parameters param;
+    int i = 1;
+    bool diferents = false;
+    // [-d] <fz_c1> <fz_c2> <fz_c3> <fn_c1> <fn_c2> <fn_c3> <alpha> <stride> [<pz_c1> <pz_c2> <pz_c3> <nz_c1> <nz_c2> <nz_c3>]
+    // -d : diferentes los tamaños de filtro, normalización y pulling
+    if ((argc == 9) || (argc == 16)){
+        if (argv[i][0] == '-') {
+            if (strcmp(argv[i], "-d") == 0) {
+                diferents = true;
+                i++;
+            }
+            else {
+                exit_with_help();
+            }
+        }
 
+        if (diferents && argc != 16) exit_with_help();
+
+        param.fz_c1 = atoi(argv[i++]);
+        param.fz_c2 = atoi(argv[i++]);
+        param.fz_c3 = atoi(argv[i++]);
+        param.fn_c1 = atoi(argv[i++]);
+        param.fn_c2 = atoi(argv[i++]);
+        param.fn_c3 = atoi(argv[i++]);
+        param.alpha = atof(argv[i++]);
+        param.stride = atoi(argv[i++]);
+
+        if (diferents) {
+            param.pz_c1 = atoi(argv[i++]);
+            param.pz_c2 = atoi(argv[i++]);
+            param.pz_c3 = atoi(argv[i++]);
+            param.nz_c1 = atoi(argv[i++]);
+            param.nz_c2 = atoi(argv[i++]);
+            param.nz_c3 = atoi(argv[i++]);
+        }
+        else{
+            param.pz_c1 = param.nz_c1 = param.fz_c1;
+            param.pz_c2 = param.nz_c2 = param.fz_c2;
+            param.pz_c3 = param.nz_c3 = param.fz_c3;
+        }
+
+        printf("1: %d, 2: %d", param.fz_c1, param.fz_c2);
+
+        return EXIT_SUCCESS;
+    }
+    else {
+        printf("fallo argumentos: %d\n", argc);
+        exit_with_help();
+    }
+
+    int loops;
 
     int filterSize = atoi(argv[1]);
     int n = atoi(argv[2]);
@@ -170,7 +244,6 @@ int main(int argc, char** argv)
     fp = fopen("directorioPrueba/img1.img", "wb");
     fclose(fp);*/
     return 0;
-
 }
 
 
