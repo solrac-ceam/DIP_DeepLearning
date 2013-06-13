@@ -26,7 +26,7 @@ typedef struct _parameters{
     int fn_c3;
     float alpha;
     int stride;
-    int n_img;
+    long n_img;
     int pz_c1;
     int pz_c2;
     int pz_c3;

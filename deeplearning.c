@@ -174,7 +174,7 @@ MultibandImage *MultibandCorrelation(MultibandImage *img, MultibandKernel *K, in
         }
     }
 
-    return(corr);
+    return corr;
 }
 
 float activation(float value, int type){

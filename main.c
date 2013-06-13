@@ -62,7 +62,7 @@ void body(Parameters param, MultibandKernel **kernels1, MultibandKernel **kernel
     MultibandImage *layer_result;
         #pragma omp critical
         {
-            while((c=getchar()) && c!='\n')
+            while((c=getchar()) && c!='\n' && c!=EOF)
                filename[aux++] = c;
             filename[aux] = '\0';
         }
@@ -101,20 +101,28 @@ void body(Parameters param, MultibandKernel **kernels1, MultibandKernel **kernel
 void exit_with_help()
 {
     printf(
-"This software has..."
-"USAGE:\n"
-"   <fz_c1> <fz_c2> <fz_c3> <fn_c1> <fn_c2> <fn_c3> <alpha> <stride> <n_img>\n"
-"   OR\n"
-"   -d <fz_c1> <fz_c2> <fz_c3> <fn_c1> <fn_c2> <fn_c3> <alpha> <stride> <n_img> <pz_c1> <pz_c2> <pz_c3> <nz_c1> <nz_c2> <nz_c3>\n\n"
-"       fz_c1   : Filter zise of layer 1\n"
-"       fz_c2   : Filter zise of layer 2\n"
-"       fz_c3   : Filter zise of layer 3\n"
-"       fn_c1   : Filter number of layer 1\n"
-"       fn_c2   : Filter number of layer 2\n"
-"       fn_c3   : Filter number of layer 3\n"
-"       alpha   : alfha of polling\n"
-"       stride  : Stride of pulling\n"
-"       n_img   : Number of images to be proceseed\n"
+        "This software has...\n"
+        "USAGE:\n"
+        "   <fz_c1> <fz_c2> <fz_c3> <fn_c1> <fn_c2> <fn_c3> <alpha> <stride> <n_img>\n"
+        "   OR\n"
+        "   -d <fz_c1> <fz_c2> <fz_c3> <fn_c1> <fn_c2> <fn_c3> <alpha> <stride> <n_img> <pz_c1> <pz_c2> <pz_c3> <nz_c1> <nz_c2> <nz_c3>\n\n"
+        "     When:\n"
+        "       -d      : Indicates that the parameters are different.\n"
+        "       fz_c1   : Filter zise of layer 1\n"
+        "       fz_c2   : Filter zise of layer 2\n"
+        "       fz_c3   : Filter zise of layer 3\n"
+        "       fn_c1   : Filter number of layer 1\n"
+        "       fn_c2   : Filter number of layer 2\n"
+        "       fn_c3   : Filter number of layer 3\n"
+        "       alpha   : alfha of polling\n"
+        "       stride  : Stride of pulling\n"
+        "       n_img   : Number of images to be proceseed\n"
+        "       pz_c1   : Kernel zise of Polling in the layer 1\n"
+        "       pz_c2   : Kernel zise of Polling in the layer 2\n"
+        "       pz_c3   : Kernel zise of Polling in the layer 3\n"
+        "       nz_c1   : Kernel zise of Normalization in the layer 1\n"
+        "       nz_c2   : Kernel zise of Normalization in the layer 2\n"
+        "       nz_c3   : Kernel zise of Normalization in the layer 3\n"
     );
     exit(EXIT_FAILURE);
 }
@@ -148,7 +156,7 @@ int main(int argc, char** argv)
         param.fn_c3 = atoi(argv[i++]);
         param.alpha = atof(argv[i++]);
         param.stride = atoi(argv[i++]);
-        param.n_img = atoi(argv[i++]);
+        param.n_img = atol(argv[i++]);
 
         if (diferents) {
             param.pz_c1 = atoi(argv[i++]);
@@ -168,13 +176,13 @@ int main(int argc, char** argv)
         //return EXIT_SUCCESS;
     }
     else {
-        printf("fallo argumentos: %d\n", argc);
+        //printf("fallo argumentos: %d\n", argc);
         exit_with_help();
     }
 
     //printf(" params: %d, %d, %d, %d, %d, %d, %d\n", param.fz_c1, param.fz_c2, param.fz_c3, param.fn_c1, param.fn_c2, param.fn_c3, param.n_img);
 
-    int loops;
+    long loops;
 
     /*int filterSize = atoi(argv[1]);
     int n = atoi(argv[2]);
@@ -199,7 +207,7 @@ int main(int argc, char** argv)
 
     printf("Started bucle\n");
 
-    #pragma omp parallel for private(loops) num_threads(8)
+    #pragma omp parallel for private(loops) num_threads(16)
     for(loops=0; loops<param.n_img; loops++){
         printf("Image %d\n", loops+1);
         body(param, kernels1, kernels2, kernels3);
