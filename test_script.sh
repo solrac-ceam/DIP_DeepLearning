@@ -16,3 +16,7 @@ svm-subset -s 1 result.csv 1300 result.test result.train
 svm-train -s 0 -t 0 -c 1 result.train model.svm
 svm-predict result.test model.svm output.svm 
 
+
+time python subset.py -s 0 result.csv 180 result.test result.train
+time ./svm-train -s 0 -t 0 -c 1 result.train model.svm.lnr
+time ./svm-predict result.test model.svm.lnr output.svml.lnr
